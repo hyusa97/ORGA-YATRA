@@ -11,7 +11,6 @@ AUTH_SHEET_NAME = "Sheet1"
 AUTH_CSV_URL = f"https://docs.google.com/spreadsheets/d/{AUTH_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={AUTH_SHEET_NAME}"
 
 # Load authentication data
-@st.cache_data
 def load_auth_data():
     return pd.read_csv(AUTH_CSV_URL)
 
