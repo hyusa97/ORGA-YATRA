@@ -121,8 +121,8 @@ else:
         st.subheader("📅 "+formatted_last_month+"   Overview")
 
         col4, col5 = st.columns(2)
-        col4.metric(label="📈 Last Month Collection", value=f"₹{last_month_collection:,.2f}")
-        col5.metric(label="📉 Last Month Expenses", value=f"₹{last_month_expense:,.2f}")
+        col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.2f}")
+        col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.2f}")
 
         st.markdown("---")
         st.write("### 📈 Collection & Distance Trend")
