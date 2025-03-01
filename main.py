@@ -101,7 +101,7 @@ else:
     page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Raw Data"])
 
     if page == "Dashboard":
-        st.title("📊 Business Dashboard")
+        st.title("📊 Orga Yatra Dashboard")
         
         total_collection = df['Amount'].sum()
         total_expense = expense_df['Amount Used'].sum()
@@ -117,7 +117,8 @@ else:
         col3.metric(label="💵 Remaining Balance", value=f"₹{remaining_amount:,.2f}")
 
         st.markdown("---")
-        st.subheader("📅 Last Month's Overview")
+        formatted_last_month = pd.to_datetime(last_month).strftime("%b %Y")  
+        st.subheader("📅 "+formatted_last_month+"   Overview")
 
         col4, col5 = st.columns(2)
         col4.metric(label="📈 Last Month Collection", value=f"₹{last_month_collection:,.2f}")
