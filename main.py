@@ -34,7 +34,13 @@ def load_sheet_data(sheet_id, sheet_name):
     try:
         sheet = client.open_by_key(sheet_id).worksheet(sheet_name)
         data = sheet.get_all_records()
-        return pd.DataFrame(data)
+        df = pd.DataFrame(data)
+
+        if 'Collection Date' in df.columns:
+            df['Collection Date'] = pd.to_datetime(df['Collection Date'], errors='coerce')
+            df['Month-Year'] = df['Collection Date'].dt.strftime('%Y-%m')
+
+        return df
     except Exception as e:
         st.error(f"❌ Failed to load data from {sheet_name}: {e}")
         return pd.DataFrame()  # Return empty DataFrame to prevent crashes
@@ -98,6 +104,10 @@ else:
     df = load_sheet_data(COLLECTION_SHEET_ID, COLLECTION_SHEET_NAME)
     expense_df = load_sheet_data(EXPENSE_SHEET_ID, EXPENSE_SHEET_NAME)
 
+    # ✅ Debugging: Print column names
+    st.write("✅ Columns in df:", df.columns.tolist())  
+    st.write("✅ Columns in expense_df:", expense_df.columns.tolist())
+
     # --- 📊 DASHBOARD UI ---
     st.sidebar.header("📂 Navigation")
     page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Raw Data"])
@@ -105,7 +115,7 @@ else:
     if page == "Dashboard":
         st.title("📊 Orga Yatra Dashboard")
 
-        if not df.empty and not expense_df.empty:
+        if not df.empty and not expense_df.empty and 'Month-Year' in df.columns:
             total_collection = df['Amount'].sum()
             total_expense = expense_df['Amount Used'].sum()
             remaining_amount = total_collection - total_expense
@@ -134,11 +144,11 @@ else:
             st.write("### 🔍 Recent Collection Data:")
             st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
         else:
-            st.warning("⚠ No data available!")
+            st.warning("⚠ No data available or 'Month-Year' column missing!")
 
     elif page == "Monthly Summary":
         st.title("📊 Monthly Collection vs Expense")
-        if not df.empty and not expense_df.empty:
+        if not df.empty and not expense_df.empty and 'Month-Year' in df.columns:
             collection_summary = df.groupby('Month-Year', as_index=False)['Amount'].sum()
             expense_summary = expense_df.groupby('Month-Year', as_index=False)['Amount Used'].sum()
             summary = collection_summary.merge(expense_summary, on='Month-Year', how='outer').fillna(0)
