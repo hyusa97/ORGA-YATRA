@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import bcrypt
+import gspread
 from google.oauth2.service_account import Credentials
 
 # Streamlit App Configuration
