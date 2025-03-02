@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import bcrypt
-import gspread
-from google.oauth2.service_account import Credentials
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
@@ -11,8 +9,6 @@ st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
 AUTH_SHEET_ID = "1RCIZrxv21hY-xtzDRuC0L50KLCLpZuYWKKatuJoVCT8"
 AUTH_SHEET_NAME = "Sheet1"
 AUTH_CSV_URL = f"https://docs.google.com/spreadsheets/d/{AUTH_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={AUTH_SHEET_NAME}"
-
-
 
 # Load authentication data
 def load_auth_data():
@@ -125,7 +121,7 @@ else:
         st.subheader("📅 "+formatted_last_month+"   Overview")
 
         col4, col5 = st.columns(2)
-        col4.metric(label="📈 "+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.2f}")
+        col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.2f}")
         col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.2f}")
 
         st.markdown("---")
