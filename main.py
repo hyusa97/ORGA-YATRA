@@ -10,11 +10,32 @@ AUTH_SHEET_ID = "1RCIZrxv21hY-xtzDRuC0L50KLCLpZuYWKKatuJoVCT8"
 AUTH_SHEET_NAME = "Sheet1"
 AUTH_CSV_URL = f"https://docs.google.com/spreadsheets/d/{AUTH_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={AUTH_SHEET_NAME}"
 
-# Load authentication data
-def load_auth_data():
-    return pd.read_csv(AUTH_CSV_URL)
 
-auth_df = load_auth_data()
+# Load credentials from Streamlit Secrets (create a copy)
+creds_dict = dict(st.secrets["gcp_service_account"])  # ✅ Create a mutable copy
+
+# Fix private key formatting
+creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+
+# ✅ Fix: Ensure correct Google API scopes
+try:
+    creds = Credentials.from_service_account_info(
+        creds_dict, 
+        scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+    )
+    client = gspread.authorize(creds)
+    auth_df = client.open_by_key(AUTH_SHEET_ID).worksheet(AUTH_SHEET_NAME)
+except Exception as e:
+    st.error(f"❌ Failed to connect to Google Sheets: {e}")
+    st.stop()
+
+
+
+# Load authentication data
+#def load_auth_data():
+#    return pd.read_csv(AUTH_CSV_URL)
+
+#auth_df = load_auth_data()
 
 # Function to Verify Password
 def verify_password(stored_hash, entered_password):
