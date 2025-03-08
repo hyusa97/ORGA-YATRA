@@ -6,8 +6,8 @@ import bcrypt
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
 
 # Authentication Google Sheets Details
-#AUTH_SHEET_ID = "1RCIZrxv21hY-xtzDRuC0L50KLCLpZuYWKKatuJoVCT8"
-AUTH_SHEET_ID = st.secrets["A_S_ID"]
+AUTH_SHEET_ID = "1RCIZrxv21hY-xtzDRuC0L50KLCLpZuYWKKatuJoVCT8"
+#AUTH_SHEET_ID = st.secrets["A_S_ID"]
 AUTH_SHEET_NAME = "Sheet1"
 AUTH_CSV_URL = f"https://docs.google.com/spreadsheets/d/{AUTH_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={AUTH_SHEET_NAME}"
 
@@ -70,13 +70,13 @@ else:
     st.sidebar.write(f"👤 **Welcome, {st.session_state.user_name}!**")
 
     # --- DATA LOADING ---
-    #COLLECTION_SHEET_ID = "1l0RVkf3U0XvWJre74qHy3Nv5n-4TKTCSV5yNVW4Sdbw"
-    COLLECTION_SHEET_ID = st.secrets["C_S_ID"]
+    COLLECTION_SHEET_ID = "1l0RVkf3U0XvWJre74qHy3Nv5n-4TKTCSV5yNVW4Sdbw"
+    #COLLECTION_SHEET_ID = st.secrets["C_S_ID"]
     COLLECTION_SHEET_NAME = "Form%20responses%201"
     COLLECTION_CSV_URL = f"https://docs.google.com/spreadsheets/d/{COLLECTION_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={COLLECTION_SHEET_NAME}"
 
-    #EXPENSE_SHEET_ID = "1bEquqG2T-obXkw5lWwukx1v_lFnLrFdAf6GlWHZ9J18"
-    EXPENSE_SHEET_ID = st.secrets["E_S_ID"]
+    EXPENSE_SHEET_ID = "1bEquqG2T-obXkw5lWwukx1v_lFnLrFdAf6GlWHZ9J18"
+    #EXPENSE_SHEET_ID = st.secrets["E_S_ID"]
     EXPENSE_SHEET_NAME = "Form%20responses%201"
     EXPENSE_CSV_URL = f"https://docs.google.com/spreadsheets/d/{EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={EXPENSE_SHEET_NAME}"
 
