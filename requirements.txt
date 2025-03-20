@@ -1,11 +1,9 @@
 streamlit
 pandas
 numpy
-altair
-gspread
-oauth2client
 bcrypt
+gspread
+google-auth
 google-auth-oauthlib
 google-auth-httplib2
 matplotlib
-

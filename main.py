@@ -1,11 +1,15 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import time
 import bcrypt
 import matplotlib.pyplot as plt
+import gspread
+from google.oauth2.service_account import Credentials
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
+
 
 # Load Google Sheet IDs securely
 AUTH_SHEET_ID = st.secrets["sheets"]["AUTH_SHEET_ID"]
@@ -17,15 +21,15 @@ INVESTMENT_SHEET_ID = st.secrets["sheets"]["INVESTMENT_SHEET_ID"]
 # Authentication Google Sheets Details
 
 AUTH_SHEET_NAME = "Sheet1"
-AUTH_CSV_URL = f"https://docs.google.com/spreadsheets/d/{AUTH_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={AUTH_SHEET_NAME}"
+
 
 # --- DATA LOADING ---
-COLLECTION_SHEET_NAME = "Form%20responses%201"
+COLLECTION_SHEET_NAME = "collection"
 COLLECTION_CSV_URL = f"https://docs.google.com/spreadsheets/d/{COLLECTION_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={COLLECTION_SHEET_NAME}"
 
 # --- EXPENSE DATA ---
 
-EXPENSE_SHEET_NAME = "Form%20responses%201"
+EXPENSE_SHEET_NAME = "expense"
 EXPENSE_CSV_URL = f"https://docs.google.com/spreadsheets/d/{EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={EXPENSE_SHEET_NAME}"
 
 # --- INVESTMENT DATA ---
@@ -33,10 +37,45 @@ EXPENSE_CSV_URL = f"https://docs.google.com/spreadsheets/d/{EXPENSE_SHEET_ID}/gv
 INVESTMENT_SHEET_NAME = "Investment_Details"
 INVESTMENT_CSV_URL = f"https://docs.google.com/spreadsheets/d/{INVESTMENT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={INVESTMENT_SHEET_NAME}"
 
-# Load authentication data
-def load_auth_data():
-    return pd.read_csv(AUTH_CSV_URL)
+# ✅ Load credentials from Streamlit Secrets (Create a Copy)
+creds_dict = dict(st.secrets["gcp_service_account"])  # Create a mutable copy
 
+# ✅ Fix private key formatting
+creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+
+# ✅ Function to Connect to Google Sheets (with Caching)
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def connect_to_sheets():
+    try:
+        creds = Credentials.from_service_account_info(
+            creds_dict, 
+            scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        )
+        client = gspread.authorize(creds)
+        
+        # Open sheets once and reuse them
+        AUTH_sheet = client.open_by_key(st.secrets["sheets"]["AUTH_SHEET_ID"]).worksheet(AUTH_SHEET_NAME)
+        COLLECTION_sheet = client.open_by_key(st.secrets["sheets"]["COLLECTION_SHEET_ID"]).worksheet(COLLECTION_SHEET_NAME)
+        EXPENSE_sheet = client.open_by_key(st.secrets["sheets"]["EXPENSE_SHEET_ID"]).worksheet(EXPENSE_SHEET_NAME)
+        INVESTMENT_sheet = client.open_by_key(st.secrets["sheets"]["INVESTMENT_SHEET_ID"]).worksheet(INVESTMENT_SHEET_NAME)
+        
+        return AUTH_sheet, COLLECTION_sheet, EXPENSE_sheet, INVESTMENT_sheet
+
+    except Exception as e:
+        st.error(f"❌ Failed to connect to Google Sheets: {e}")
+        st.stop()
+
+# ✅ Get cached sheets
+AUTH_sheet, COLLECTION_sheet, EXPENSE_sheet, INVESTMENT_sheet = connect_to_sheets()
+
+# Function to load authentication data securely
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def load_auth_data():
+    data = AUTH_sheet.get_all_records()
+    df = pd.DataFrame(data)
+    return df
+
+# Load authentication data
 auth_df = load_auth_data()
 
 # Function to Verify Password
@@ -91,7 +130,7 @@ else:
 
     st.sidebar.write(f"👤 **Welcome, {st.session_state.user_name}!**")
 
-
+    @st.cache_data(ttl=300)  # Cache for 5 minutes
     def load_data(url):
         df = pd.read_csv(url, dayfirst=True, dtype={"Vehicle No": str})  # Ensure Vehicle No remains a string
         
@@ -111,7 +150,7 @@ else:
 
         return df[['Collection Date', 'Vehicle No', 'Amount', 'Meter Reading', 'Name', 'Distance', 'Month-Year']]
 
-
+    @st.cache_data(ttl=300)  # Cache for 5 minutes
     def load_expense_data(url):
         df = pd.read_csv(url, dayfirst=True, dtype={"Vehicle No": str})  # Ensure Vehicle No remains a string
         df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors='coerce').dt.date
@@ -119,6 +158,7 @@ else:
         df['Month-Year'] = pd.to_datetime(df['Date']).dt.strftime('%Y-%m')
         return df[['Date', 'Vehicle No', 'Reason of Expense', 'Amount Used', 'Any Bill', 'Month-Year']]
     
+    @st.cache_data(ttl=300)  # Cache for 5 minutes    
     def load_investment_data(url):
         df = pd.read_csv(url, dayfirst=True)
 
