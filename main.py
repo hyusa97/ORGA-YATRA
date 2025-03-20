@@ -19,6 +19,20 @@ INVESTMENT_SHEET_ID = st.secrets["sheets"]["INVESTMENT_SHEET_ID"]
 AUTH_SHEET_NAME = "Sheet1"
 AUTH_CSV_URL = f"https://docs.google.com/spreadsheets/d/{AUTH_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={AUTH_SHEET_NAME}"
 
+# --- DATA LOADING ---
+COLLECTION_SHEET_NAME = "Form%20responses%201"
+COLLECTION_CSV_URL = f"https://docs.google.com/spreadsheets/d/{COLLECTION_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={COLLECTION_SHEET_NAME}"
+
+# --- EXPENSE DATA ---
+
+EXPENSE_SHEET_NAME = "Form%20responses%201"
+EXPENSE_CSV_URL = f"https://docs.google.com/spreadsheets/d/{EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={EXPENSE_SHEET_NAME}"
+
+# --- INVESTMENT DATA ---
+
+INVESTMENT_SHEET_NAME = "Investment_Details"
+INVESTMENT_CSV_URL = f"https://docs.google.com/spreadsheets/d/{INVESTMENT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={INVESTMENT_SHEET_NAME}"
+
 # Load authentication data
 def load_auth_data():
     return pd.read_csv(AUTH_CSV_URL)
@@ -77,19 +91,6 @@ else:
 
     st.sidebar.write(f"👤 **Welcome, {st.session_state.user_name}!**")
 
-    # --- DATA LOADING ---
-    COLLECTION_SHEET_NAME = "Form%20responses%201"
-    COLLECTION_CSV_URL = f"https://docs.google.com/spreadsheets/d/{COLLECTION_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={COLLECTION_SHEET_NAME}"
-
-    # --- EXPENSE DATA ---
-
-    EXPENSE_SHEET_NAME = "Form%20responses%201"
-    EXPENSE_CSV_URL = f"https://docs.google.com/spreadsheets/d/{EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={EXPENSE_SHEET_NAME}"
-
-    # --- INVESTMENT DATA ---
-
-    INVESTMENT_SHEET_NAME = "Investment_Details"
-    INVESTMENT_CSV_URL = f"https://docs.google.com/spreadsheets/d/{INVESTMENT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={INVESTMENT_SHEET_NAME}"
 
     def load_data(url):
         df = pd.read_csv(url, dayfirst=True, dtype={"Vehicle No": str})  # Ensure Vehicle No remains a string
