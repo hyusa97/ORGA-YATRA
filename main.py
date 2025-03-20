@@ -7,9 +7,15 @@ import matplotlib.pyplot as plt
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
 
+# Load Google Sheet IDs securely
+AUTH_SHEET_ID = st.secrets["sheets"]["AUTH_SHEET_ID"]
+COLLECTION_SHEET_ID = st.secrets["sheets"]["COLLECTION_SHEET_ID"]
+EXPENSE_SHEET_ID = st.secrets["sheets"]["EXPENSE_SHEET_ID"]
+INVESTMENT_SHEET_ID = st.secrets["sheets"]["INVESTMENT_SHEET_ID"]
+
+
 # Authentication Google Sheets Details
-AUTH_SHEET_ID = "1RCIZrxv21hY-xtzDRuC0L50KLCLpZuYWKKatuJoVCT8"
-#AUTH_SHEET_ID = st.secrets["A_S_ID"]
+
 AUTH_SHEET_NAME = "Sheet1"
 AUTH_CSV_URL = f"https://docs.google.com/spreadsheets/d/{AUTH_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={AUTH_SHEET_NAME}"
 
@@ -72,18 +78,16 @@ else:
     st.sidebar.write(f"👤 **Welcome, {st.session_state.user_name}!**")
 
     # --- DATA LOADING ---
-    COLLECTION_SHEET_ID = "1l0RVkf3U0XvWJre74qHy3Nv5n-4TKTCSV5yNVW4Sdbw"
-    #COLLECTION_SHEET_ID = st.secrets["C_S_ID"]
     COLLECTION_SHEET_NAME = "Form%20responses%201"
     COLLECTION_CSV_URL = f"https://docs.google.com/spreadsheets/d/{COLLECTION_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={COLLECTION_SHEET_NAME}"
 
-    EXPENSE_SHEET_ID = "1bEquqG2T-obXkw5lWwukx1v_lFnLrFdAf6GlWHZ9J18"
-    #EXPENSE_SHEET_ID = st.secrets["E_S_ID"]
+    # --- EXPENSE DATA ---
+
     EXPENSE_SHEET_NAME = "Form%20responses%201"
     EXPENSE_CSV_URL = f"https://docs.google.com/spreadsheets/d/{EXPENSE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={EXPENSE_SHEET_NAME}"
 
     # --- INVESTMENT DATA ---
-    INVESTMENT_SHEET_ID = "1d16WsFBtIvKTRDctkIowqFLchtM3V7N1XeM-rAv1uvs"
+
     INVESTMENT_SHEET_NAME = "Investment_Details"
     INVESTMENT_CSV_URL = f"https://docs.google.com/spreadsheets/d/{INVESTMENT_SHEET_ID}/gviz/tq?tqx=out:csv&sheet={INVESTMENT_SHEET_NAME}"
 
@@ -284,5 +288,3 @@ else:
         # --- DISPLAY DETAILED DATA ---
         st.write("### 🔍 Detailed Investment Data")
         st.dataframe(investment_df.sort_values(by="Date", ascending=False))
-
-
