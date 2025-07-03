@@ -137,13 +137,30 @@ else:
         df['Collection Date'] = pd.to_datetime(df['Collection Date'], dayfirst=True, errors='coerce').dt.date
         df['Amount'] = pd.to_numeric(df['Amount'], errors='coerce')
         df['Meter Reading'] = pd.to_numeric(df['Meter Reading'], errors='coerce')
-
+        '''
         # Calculate Distance
         df['Distance'] = df['Meter Reading'].diff().fillna(0)
 
         # Replace negative distances with the average of positive distances
         positive_avg_distance = df[df['Distance'] > 0]['Distance'].mean()
         df.loc[df['Distance'] < 0, 'Distance'] = np.round(positive_avg_distance)
+        '''
+        ##CALCULATE DISTANCE NEW
+        # Sort by vehicle and date to calculate correct distance
+        df = df.sort_values(by=["Vehicle No", "Collection Date"])
+
+        # Calculate distance by subtracting previous meter reading **for the same vehicle
+        df['Previous Meter'] = df.groupby("Vehicle No")['Meter Reading'].shift(1)
+        df['Distance'] = df['Meter Reading'] - df['Previous Meter']
+
+        # Handle first entries per vehicle (where previous meter is NaN)
+        df['Distance'] = df['Distance'].fillna(0)
+
+        # Replace negative distances with the average of positive distances
+        positive_avg_distance = df[df['Distance'] > 0]['Distance'].mean()
+        df.loc[df['Distance'] < 0, 'Distance'] = np.round(positive_avg_distance)
+
+
 
         # Month-Year Column
         df['Month-Year'] = pd.to_datetime(df['Collection Date']).dt.strftime('%Y-%m')
