@@ -137,15 +137,8 @@ else:
         df['Collection Date'] = pd.to_datetime(df['Collection Date'], dayfirst=True, errors='coerce').dt.date
         df['Amount'] = pd.to_numeric(df['Amount'], errors='coerce')
         df['Meter Reading'] = pd.to_numeric(df['Meter Reading'], errors='coerce')
-        '''
-        # Calculate Distance
-        df['Distance'] = df['Meter Reading'].diff().fillna(0)
-
-        # Replace negative distances with the average of positive distances
-        positive_avg_distance = df[df['Distance'] > 0]['Distance'].mean()
-        df.loc[df['Distance'] < 0, 'Distance'] = np.round(positive_avg_distance)
-        '''
-        ##CALCULATE DISTANCE NEW
+       
+        ##CALCULATE DISTANCE 
         # Sort by vehicle and date to calculate correct distance
         df = df.sort_values(by=["Vehicle No", "Collection Date"])
 
@@ -241,6 +234,7 @@ else:
         col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.2f}")
         col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.2f}")
 
+        
         st.markdown("---")
         st.write("### 📈 Collection & Distance Trend")
         st.line_chart(df.set_index("Collection Date")[["Amount", "Distance"]])
