@@ -875,7 +875,7 @@ else:
     
         # ✅ Make Bill column clickable if it has a URL
         display_df["Bill"] = display_df["Bill"].apply(
-            lambda x: f'<a href="{x}" target="_blank">📎 View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
+            lambda x: f'<a href="{x}" target="_blank">View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
         )
     
         def color_amount(val):
