@@ -478,8 +478,8 @@ else:
 
     elif page == "Expenses":
         st.title("💸 Expense Insights")
-
-        # Add Investment Button (Top Right)
+    
+        # Add Expense Button (Top Right)
         col1, col2 = st.columns([6, 1])
         with col2:
             st.markdown(
@@ -488,10 +488,36 @@ else:
                 f'</a>',
                 unsafe_allow_html=True
             )
-
+    
+        # ───────────────────────────────────────────────────────────────
+        # 🔹 Ensure Date is in datetime format and extract Month & Year
+        expense_df["Date"] = pd.to_datetime(expense_df["Date"], errors='coerce')
+        expense_df["Year"] = expense_df["Date"].dt.year
+        expense_df["Month"] = expense_df["Date"].dt.strftime('%B')  # e.g., August
+    
+        # ───────────────────────────────────────────────────────────────
+        # 🔹 Sidebar Filters
+        st.sidebar.markdown("### 🔍 Filter Expenses")
+    
+        person_options = expense_df["Expense By"].dropna().unique().tolist()
+        selected_person = st.sidebar.multiselect("Expense By", person_options, default=person_options)
+    
+        year_options = sorted(expense_df["Year"].dropna().unique(), reverse=True)
+        selected_years = st.sidebar.multiselect("Year", year_options, default=year_options)
+    
+        month_options = expense_df["Month"].dropna().unique().tolist()
+        selected_months = st.sidebar.multiselect("Month", month_options, default=month_options)
+    
+        # Apply filters
+        filtered_expense_df = expense_df[
+            (expense_df["Expense By"].isin(selected_person)) &
+            (expense_df["Year"].isin(selected_years)) &
+            (expense_df["Month"].isin(selected_months))
+        ]
+    
         # ───────────────────────────────────────────────────────────────
         # 🔹 Section 1: Total Expense Summary
-        total_manual_expense = expense_df["Amount Used"].sum()
+        total_manual_expense = filtered_expense_df["Amount Used"].sum()
         total_bank_expense = govind_expense_debit + gaurav_expense_debit
         total_expense = total_manual_expense + total_bank_expense
     
@@ -506,9 +532,15 @@ else:
         # 🔹 Section 2: Manually Entered Expenses
         st.subheader("🧾 Manual Expense Summary")
     
-        # Monthly manual expenses
-        monthly_manual_expense = expense_df.groupby("Month-Year", as_index=False)['Amount Used'].sum()
-        st.bar_chart(monthly_manual_expense.set_index("Month-Year"))
+        if not filtered_expense_df.empty:
+            monthly_summary = (
+                filtered_expense_df.groupby(["Year", "Month"], as_index=False)["Amount Used"].sum()
+                .sort_values(["Year", "Month"])
+            )
+            monthly_summary["Year-Month"] = monthly_summary["Month"] + " " + monthly_summary["Year"].astype(str)
+            st.bar_chart(monthly_summary.set_index("Year-Month")["Amount Used"])
+        else:
+            st.info("No expense data available for selected filters.")
     
         with st.expander("🔍 View Bank Expense Transactions"):
             bank_expense_df = bank_df[bank_df['Transaction Type'] == 'Expence_Debit'][['Date', 'Transaction By', 'Amount', 'Reason']]
@@ -519,10 +551,8 @@ else:
         # ───────────────────────────────────────────────────────────────
         # 🔹 Section 3: Detailed Manual Expense Entries
         st.subheader("📋 Detailed Manual Expense Entries")
-        st.dataframe(expense_df.sort_values(by="Date", ascending=False))
-    
-    
-#-----------------------------------------------------
+        st.dataframe(filtered_expense_df.sort_values(by="Date", ascending=False))
+
 
     
     elif page == "Investment":
