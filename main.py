@@ -793,26 +793,24 @@ else:
     elif page == "Bank Transaction":
         st.title("🏦 Bank Transactions")
     
-        # Add Transaction Button (Top Right)
+        # ➕ Add Transaction Button (Top Right)
         col1, col2 = st.columns([6, 1])
         with col2:
             st.markdown(
                 f'<a href="https://forms.gle/JwXMNkREnjeqAfNPA" target="_blank">'
-                f'<button style="background-color:#4CAF50; color:white; padding:8px 16px; font-size:14px; border:none; border-radius:5px;">➕ Add Bank Transaction</button>'
+                f'<button style="background-color:#4CAF50; color:white; padding:8px 16px; font-size:14px; border:none; border-radius:5px; cursor:pointer;">➕ Add Transaction</button>'
                 f'</a>',
                 unsafe_allow_html=True
             )
     
-        # Ensure 'Date' is datetime
+        # Preprocessing
         bank_df["Date"] = pd.to_datetime(bank_df["Date"], dayfirst=True)
         bank_df["Transaction Type"] = bank_df["Transaction Type"].str.strip()
         bank_df["Month"] = bank_df["Date"].dt.strftime("%B")
         bank_df["Year"] = bank_df["Date"].dt.year
     
-        # 🔒 Full data copy for current balance
+        # Full data copy for unfiltered metrics
         full_df = bank_df.copy()
-    
-        # Total balance from full data (not filtered)
         credit_mask_full = full_df["Transaction Type"].str.lower().str.contains("credit")
         debit_mask_full = full_df["Transaction Type"].str.lower().str.contains("debit")
     
@@ -820,46 +818,58 @@ else:
         total_debit = full_df.loc[debit_mask_full, "Amount"].sum()
         balance = total_credit - total_debit
     
-        # 📌 Sidebar Filters
-        st.sidebar.header("📅 Filter Transactions")
-    
-        filter_option = st.sidebar.selectbox("Choose filter type:", ["All", "Last 3 Months", "Select Month & Year"])
+        # Filters in Sidebar
+        st.sidebar.header("🔍 Filter Transactions")
+        filter_option = st.sidebar.selectbox("Choose Filter Type", ["All", "Last 3 Months", "Select Month & Year"])
     
         if filter_option == "All":
             filtered_df = bank_df
         elif filter_option == "Last 3 Months":
             last_3_months = pd.Timestamp.today() - pd.DateOffset(months=3)
             filtered_df = bank_df[bank_df["Date"] >= last_3_months]
-        elif filter_option == "Select Month & Year":
-            selected_year = st.sidebar.selectbox("Year", sorted(bank_df["Year"].unique(), reverse=True))
-            selected_month = st.sidebar.selectbox("Month", sorted(bank_df["Month"].unique(), key=lambda x: pd.to_datetime(x, format="%B").month))
+        else:
+            selected_year = st.sidebar.selectbox("Select Year", sorted(bank_df["Year"].unique(), reverse=True))
+            selected_month = st.sidebar.selectbox("Select Month", sorted(bank_df["Month"].unique(), key=lambda x: pd.to_datetime(x, format="%B").month))
             filtered_df = bank_df[(bank_df["Year"] == selected_year) & (bank_df["Month"] == selected_month)]
     
-        # 💰 Current Balance (Always from full data)
-        st.subheader("💰 Current Bank Balance")
-        st.metric(label="Available Balance", value=f"₹ {balance:,.2f}", delta=f"₹ {total_credit - total_debit:,.2f}")
+        # Balance Summary Cards
+        with st.container():
+            col1, col2 = st.columns(2)
     
-        # 📌 Closing Balance of Filtered Data
-        st.subheader("📉 Closing Balance for Selected Period")
-        credit_mask = filtered_df["Transaction Type"].str.lower().str.contains("credit")
-        debit_mask = filtered_df["Transaction Type"].str.lower().str.contains("debit")
-        closing_credit = filtered_df.loc[credit_mask, "Amount"].sum()
-        closing_debit = filtered_df.loc[debit_mask, "Amount"].sum()
-        closing_balance = closing_credit - closing_debit
-        st.metric(label="Closing Balance (Filtered)", value=f"₹ {closing_balance:,.2f}")
+            with col1:
+                st.markdown("#### 💰 Available Bank Balance")
+                st.markdown(f"""
+                    <div style='background-color: #e8f5e9; padding: 20px; border-radius: 10px; text-align:center;'>
+                        <h3 style='color: green;'>₹ {balance:,.2f}</h3>
+                    </div>
+                """, unsafe_allow_html=True)
     
-        # 📊 Monthly Summary (From filtered data)
-        st.subheader("📊 Monthly Transaction Summary")
+            with col2:
+                credit_mask = filtered_df["Transaction Type"].str.lower().str.contains("credit")
+                debit_mask = filtered_df["Transaction Type"].str.lower().str.contains("debit")
+                closing_credit = filtered_df.loc[credit_mask, "Amount"].sum()
+                closing_debit = filtered_df.loc[debit_mask, "Amount"].sum()
+                closing_balance = closing_credit - closing_debit
+    
+                st.markdown("#### 📉 Closing Balance (Filtered)")
+                st.markdown(f"""
+                    <div style='background-color: #fff3e0; padding: 20px; border-radius: 10px; text-align:center;'>
+                        <h3 style='color: orange;'>₹ {closing_balance:,.2f}</h3>
+                    </div>
+                """, unsafe_allow_html=True)
+    
+        # Monthly Summary
+        st.markdown("### 📊 Monthly Transaction Summary")
         monthly_summary = (
             filtered_df.groupby(["Month", "Transaction Type"])["Amount"]
             .sum()
             .unstack(fill_value=0)
             .reset_index()
         )
-        st.dataframe(monthly_summary)
+        st.dataframe(monthly_summary, use_container_width=True, hide_index=True)
     
-        # 📋 Full Transaction Log
-        st.subheader("📋 Full Bank Transaction Log")
+        # Full Transaction Log
+        st.markdown("### 📋 Full Bank Transaction Log")
     
         display_df = filtered_df[["Date", "Transaction By", "Transaction Type", "Reason", "Amount", "Bill"]].copy()
     
@@ -871,31 +881,36 @@ else:
                 return f"-₹{amt:,.2f}"
             return f"₹{amt:,.2f}"
     
-        display_df["Formatted Amount"] = filtered_df.apply(format_amount, axis=1)
+        display_df["Formatted Amount"] = display_df.apply(format_amount, axis=1)
     
-        # ✅ Make Bill column clickable if it has a URL
         display_df["Bill"] = display_df["Bill"].apply(
-            lambda x: f'<a href="{x}" target="_blank">View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
+            lambda x: f'<a href="{x}" target="_blank">📎 View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
         )
+    
+        styled = display_df[["Date", "Transaction By", "Transaction Type", "Reason", "Formatted Amount", "Bill"]].sort_values(by="Date", ascending=False)
     
         def color_amount(val):
             if isinstance(val, str):
                 if val.startswith("+"):
-                    return "color: green"
+                    return "color: green; font-weight: bold;"
                 elif val.startswith("-"):
-                    return "color: red"
+                    return "color: red; font-weight: bold;"
             return ""
     
-        styled = display_df[["Date", "Transaction By", "Transaction Type", "Reason", "Formatted Amount", "Bill"]].sort_values(by="Date", ascending=False)
-        styled_df = styled.style.applymap(color_amount, subset=["Formatted Amount"])
+        styled_table = styled.style.applymap(color_amount, subset=["Formatted Amount"]) \
+            .set_table_styles([
+                {'selector': 'th', 'props': [('background-color', '#f2f2f2'), ('text-align', 'center')]},
+                {'selector': 'td', 'props': [('text-align', 'center'), ('padding', '8px')]},
+                {'selector': 'tr:nth-child(even)', 'props': [('background-color', '#f9f9f9')]},
+                {'selector': 'tr:hover', 'props': [('background-color', '#f1f1f1')]},
+            ])
     
-        # ✅ Render with clickable links
         st.markdown(
-            styled_df.to_html(escape=False, index=False),
+            styled_table.to_html(escape=False, index=False),
             unsafe_allow_html=True
         )
     
-        # ⬇️ Export Filtered Data
+        # Download Button
         st.download_button(
             label="📥 Download Filtered Transactions as CSV",
             data=filtered_df.to_csv(index=False),
