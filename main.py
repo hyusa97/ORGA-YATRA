@@ -363,10 +363,6 @@ else:
         # Default full data before filtering
         filtered_df = df.copy()
         
-        # === CHART ===
-        st.write("### 📈 Collection & Distance Trend")
-        st.line_chart(filtered_df.set_index("Collection Date")[["Amount", "Distance"]])
-        
         # === RADIO BUTTONS CENTERED BELOW CHART ===
         col1, col2, col3 = st.columns([1, 3, 1])  # Center the middle column
         with col2:
