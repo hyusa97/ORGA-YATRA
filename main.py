@@ -889,9 +889,22 @@ else:
         styled = display_df[["Date", "Transaction By", "Transaction Type", "Reason", "Formatted Amount", "Bill"]].sort_values(by="Date", ascending=False)
         styled_df = styled.style.applymap(color_amount, subset=["Formatted Amount"])
     
-        # ✅ Render with clickable links
+        # 💡 Full Width Styling for Table
         st.markdown(
-            styled_df.to_html(escape=False, index=False),
+            """
+            <style>
+                .full-width-table {
+                    width: 100%;
+                    overflow-x: auto;
+                }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    
+        # ✅ Render styled DataFrame with clickable links and full width
+        st.markdown(
+            f'<div class="full-width-table">{styled_df.to_html(escape=False, index=False)}</div>',
             unsafe_allow_html=True
         )
     
