@@ -779,10 +779,46 @@ else:
     
         st.markdown("### 📈 Collection Trend")
     
-        # Line chart for all vehicles
+        # Line chart with time range filter
         chart_df = df.groupby(["Collection Date", "Vehicle No"])["Amount"].sum().reset_index()
-        chart_pivot = chart_df.pivot(index="Collection Date", columns="Vehicle No", values="Amount").fillna(0)
-        st.line_chart(chart_pivot)
+        chart_df["Collection Date"] = pd.to_datetime(chart_df["Collection Date"])
+        
+        
+        # === RADIO BUTTONS CENTERED BELOW CHART WITHOUT LABEL ===
+        col1, col2, col3 = st.columns([1, 3, 1])
+        with col2:
+            range_option = st.radio(
+                "",  # Remove label
+                ["1 Week", "1 Month", "3 Months", "6 Months", "1 Year", "3 Years", "5 Years", "Max"],
+                horizontal=True,
+            )
+        
+        # === FILTER BASED ON SELECTION ===
+        today = pd.to_datetime("today")
+        if range_option == "1 Week":
+            start_date = today - pd.Timedelta(weeks=1)
+        elif range_option == "1 Month":
+            start_date = today - pd.DateOffset(months=1)
+        elif range_option == "3 Months":
+            start_date = today - pd.DateOffset(months=3)
+        elif range_option == "6 Months":
+            start_date = today - pd.DateOffset(months=6)
+        elif range_option == "1 Year":
+            start_date = today - pd.DateOffset(years=1)
+        elif range_option == "3 Years":
+            start_date = today - pd.DateOffset(years=3)
+        elif range_option == "5 Years":
+            start_date = today - pd.DateOffset(years=5)
+        else:
+            start_date = chart_df["Collection Date"].min()
+        
+        # Apply the filter
+        filtered_chart_df = chart_df[chart_df["Collection Date"] >= start_date]
+        filtered_pivot = filtered_chart_df.pivot(index="Collection Date", columns="Vehicle No", values="Amount").fillna(0)
+        
+        # Rerender chart with filtered data
+        st.line_chart(filtered_pivot)
+
     
         st.markdown("### 📄 Collection Records")
     
