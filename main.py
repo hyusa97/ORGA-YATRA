@@ -792,7 +792,7 @@ else:
 
     elif page == "Bank Transaction":
         st.title("🏦 Bank Transactions")
-
+    
         # Add Transaction Button (Top Right)
         col1, col2 = st.columns([6, 1])
         with col2:
@@ -802,7 +802,6 @@ else:
                 f'</a>',
                 unsafe_allow_html=True
             )
-
     
         # Ensure 'Date' is datetime
         bank_df["Date"] = pd.to_datetime(bank_df["Date"], dayfirst=True)
@@ -872,7 +871,7 @@ else:
                 return f"-₹{amt:,.2f}"
             return f"₹{amt:,.2f}"
     
-        display_df["Formatted Amount"] = filtered_df.apply(format_amount, axis=1)
+        display_df["Formatted Amount"] = display_df.apply(format_amount, axis=1)
     
         def color_amount(val):
             if isinstance(val, str):
@@ -882,9 +881,32 @@ else:
                     return "color: red"
             return ""
     
+        # Convert Bill column to clickable link/button
+        def make_clickable(val):
+            if val and val != "-":
+                return f'<a href="{val}" target="_blank">📄 View Bill</a>'
+            return "-"
+    
+        display_df["Bill"] = display_df["Bill"].apply(make_clickable)
+    
         styled = display_df[["Date", "Transaction By", "Transaction Type", "Reason", "Formatted Amount", "Bill"]].sort_values(by="Date", ascending=False)
-        styled_df = styled.style.applymap(color_amount, subset=["Formatted Amount"])
+        styled_df = styled.style.applymap(color_amount, subset=["Formatted Amount"]).format({"Bill": lambda x: x}, escape="html")
         st.dataframe(styled_df, use_container_width=True)
+    
+        # File Viewer (Optional)
+        st.subheader("🔍 Preview Bill File")
+        available_files = display_df["Bill"][display_df["Bill"] != "-"].unique()
+        selected_file = st.selectbox("Select file to preview:", options=available_files)
+        if selected_file:
+            if selected_file.endswith(".pdf"):
+                st.markdown(f'<iframe src="{selected_file}" width="100%" height="600px"></iframe>', unsafe_allow_html=True)
+            elif selected_file.endswith((".jpg", ".jpeg", ".png")):
+                import requests
+                from PIL import Image
+                from io import BytesIO
+                response = requests.get(selected_file)
+                img = Image.open(BytesIO(response.content))
+                st.image(img, use_column_width=True)
     
         # ⬇️ Export Filtered Data
         st.download_button(
