@@ -357,10 +357,26 @@ else:
             horizontal=True,
         )
         
-        # Convert "Collection Date" to datetime
+        # Convert Collection Date to datetime
         df["Collection Date"] = pd.to_datetime(df["Collection Date"])
         
-        # Determine date range
+        # Default full data before filtering
+        filtered_df = df.copy()
+        
+        # === CHART ===
+        st.write("### 📈 Collection & Distance Trend")
+        st.line_chart(filtered_df.set_index("Collection Date")[["Amount", "Distance"]])
+        
+        # === RADIO BUTTONS CENTERED BELOW CHART ===
+        col1, col2, col3 = st.columns([1, 3, 1])  # Center the middle column
+        with col2:
+            range_option = st.radio(
+                "",
+                ["1 Week", "1 Month", "3 Months", "6 Months", "1 Year", "3 Years", "5 Years", "Max"],
+                horizontal=True,
+            )
+        
+        # Determine the date range based on selection
         today = pd.to_datetime("today")
         if range_option == "1 Week":
             start_date = today - pd.Timedelta(weeks=1)
@@ -376,13 +392,13 @@ else:
             start_date = today - pd.DateOffset(years=3)
         elif range_option == "5 Years":
             start_date = today - pd.DateOffset(years=5)
-        else:  # Max
+        else:
             start_date = df["Collection Date"].min()
         
-        # Filter data
+        # Filter data based on selected date range
         filtered_df = df[df["Collection Date"] >= start_date]
         
-        # Show line chart
+        # === RERENDER CHART ===
         st.line_chart(filtered_df.set_index("Collection Date")[["Amount", "Distance"]])
 
 
