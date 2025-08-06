@@ -545,6 +545,11 @@ else:
         pivot_df = momo_df.pivot(index="YearMonth", columns="Expense By", values="Amount Used").fillna(0)
     
         st.bar_chart(pivot_df)
+
+        # 🔹 Total of Filtered Data
+        total_filtered_expense = filtered_df["Amount Used"].sum()
+        st.metric("📌 Total Filtered Expense", f"₹{total_filtered_expense:,.2f}")
+
     
         # ─────────────────────────────────────────────────────
         # 🔹 View Filtered Table
