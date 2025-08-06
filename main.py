@@ -612,7 +612,21 @@ else:
             st.bar_chart(comparison_df)
     
         st.markdown("---")
-    
+        if "Date" in full_investment_df.columns:
+            # Convert to datetime safely (assuming your dates are in day/month/year format)
+            full_investment_df["Date"] = pd.to_datetime(full_investment_df["Date"], dayfirst=True, errors="coerce")
+        
+            # Drop any rows with invalid dates
+            full_investment_df = full_investment_df.dropna(subset=["Date"])
+        
+            # Now sort works
+            full_investment_df = full_investment_df.sort_values(by="Date", ascending=False)
+        
+            # Display
+            st.dataframe(full_investment_df)
+        else:
+            st.warning("⚠️ 'Date' column not found in investment data.")
+
         # --- Detailed View ---
         st.subheader("📋 All Investment Records")
         st.dataframe(full_investment_df.sort_values(by="Date", ascending=False))
