@@ -623,13 +623,10 @@ else:
             full_investment_df = full_investment_df.sort_values(by="Date", ascending=False)
         
             # Display
+            st.subheader("📋 All Investment Records")
             st.dataframe(full_investment_df)
         else:
             st.warning("⚠️ 'Date' column not found in investment data.")
-
-        # --- Detailed View ---
-        st.subheader("📋 All Investment Records")
-        st.dataframe(full_investment_df.sort_values(by="Date", ascending=False))
 
     
     elif page == "Collection Data":
