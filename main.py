@@ -348,8 +348,43 @@ else:
         col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.2f}")
 
         st.markdown("---")
+        # Time range filter
         st.write("### 📈 Collection & Distance Trend")
-        st.line_chart(df.set_index("Collection Date")[["Amount", "Distance"]])
+        
+        range_option = st.radio(
+            "Select Time Range",
+            ["1 Week", "1 Month", "3 Months", "6 Months", "1 Year", "3 Years", "5 Years", "Max"],
+            horizontal=True,
+        )
+        
+        # Convert "Collection Date" to datetime
+        df["Collection Date"] = pd.to_datetime(df["Collection Date"])
+        
+        # Determine date range
+        today = pd.to_datetime("today")
+        if range_option == "1 Week":
+            start_date = today - pd.Timedelta(weeks=1)
+        elif range_option == "1 Month":
+            start_date = today - pd.DateOffset(months=1)
+        elif range_option == "3 Months":
+            start_date = today - pd.DateOffset(months=3)
+        elif range_option == "6 Months":
+            start_date = today - pd.DateOffset(months=6)
+        elif range_option == "1 Year":
+            start_date = today - pd.DateOffset(years=1)
+        elif range_option == "3 Years":
+            start_date = today - pd.DateOffset(years=3)
+        elif range_option == "5 Years":
+            start_date = today - pd.DateOffset(years=5)
+        else:  # Max
+            start_date = df["Collection Date"].min()
+        
+        # Filter data
+        filtered_df = df[df["Collection Date"] >= start_date]
+        
+        # Show line chart
+        st.line_chart(filtered_df.set_index("Collection Date")[["Amount", "Distance"]])
+
 
         st.write("### 🔍 Recent Collection Data:")
         st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
