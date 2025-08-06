@@ -348,14 +348,6 @@ else:
         col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.2f}")
 
         st.markdown("---")
-        # Time range filter
-        st.write("### 📈 Collection & Distance Trend")
-        
-        range_option = st.radio(
-            "Select Time Range",
-            ["1 Week", "1 Month", "3 Months", "6 Months", "1 Year", "3 Years", "5 Years", "Max"],
-            horizontal=True,
-        )
         
         # Convert Collection Date to datetime
         df["Collection Date"] = pd.to_datetime(df["Collection Date"])
