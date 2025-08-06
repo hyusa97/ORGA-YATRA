@@ -871,7 +871,12 @@ else:
                 return f"-₹{amt:,.2f}"
             return f"₹{amt:,.2f}"
     
-        display_df["Formatted Amount"] = display_df.apply(format_amount, axis=1)
+        display_df["Formatted Amount"] = filtered_df.apply(format_amount, axis=1)
+    
+        # ✅ Make Bill column clickable if it has a URL
+        display_df["Bill"] = display_df["Bill"].apply(
+            lambda x: f'<a href="{x}" target="_blank">View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
+        )
     
         def color_amount(val):
             if isinstance(val, str):
@@ -881,32 +886,14 @@ else:
                     return "color: red"
             return ""
     
-        # Convert Bill column to clickable link/button
-        def make_clickable(val):
-            if val and val != "-":
-                return f'<a href="{val}" target="_blank">📄 View Bill</a>'
-            return "-"
-    
-        display_df["Bill"] = display_df["Bill"].apply(make_clickable)
-    
         styled = display_df[["Date", "Transaction By", "Transaction Type", "Reason", "Formatted Amount", "Bill"]].sort_values(by="Date", ascending=False)
-        styled_df = styled.style.applymap(color_amount, subset=["Formatted Amount"]).format({"Bill": lambda x: x}, escape="html")
-        st.dataframe(styled_df, use_container_width=True)
+        styled_df = styled.style.applymap(color_amount, subset=["Formatted Amount"])
     
-        # File Viewer (Optional)
-        st.subheader("🔍 Preview Bill File")
-        available_files = display_df["Bill"][display_df["Bill"] != "-"].unique()
-        selected_file = st.selectbox("Select file to preview:", options=available_files)
-        if selected_file:
-            if selected_file.endswith(".pdf"):
-                st.markdown(f'<iframe src="{selected_file}" width="100%" height="600px"></iframe>', unsafe_allow_html=True)
-            elif selected_file.endswith((".jpg", ".jpeg", ".png")):
-                import requests
-                from PIL import Image
-                from io import BytesIO
-                response = requests.get(selected_file)
-                img = Image.open(BytesIO(response.content))
-                st.image(img, use_column_width=True)
+        # ✅ Render with clickable links
+        st.markdown(
+            styled_df.to_html(escape=False, index=False),
+            unsafe_allow_html=True
+        )
     
         # ⬇️ Export Filtered Data
         st.download_button(
