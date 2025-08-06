@@ -490,34 +490,15 @@ else:
             )
     
         # ───────────────────────────────────────────────────────────────
-        # 🔹 Ensure Date is in datetime format and extract Month & Year
+        # 🔹 Preprocessing
         expense_df["Date"] = pd.to_datetime(expense_df["Date"], errors='coerce')
         expense_df["Year"] = expense_df["Date"].dt.year
-        expense_df["Month"] = expense_df["Date"].dt.strftime('%B')  # e.g., August
+        expense_df["Month"] = expense_df["Date"].dt.strftime('%B')  # 'August'
+        expense_df["Month_Num"] = expense_df["Date"].dt.month
     
         # ───────────────────────────────────────────────────────────────
-        # 🔹 Sidebar Filters
-        st.sidebar.markdown("### 🔍 Filter Expenses")
-    
-        person_options = expense_df["Expense By"].dropna().unique().tolist()
-        selected_person = st.sidebar.multiselect("Expense By", person_options, default=person_options)
-    
-        year_options = sorted(expense_df["Year"].dropna().unique(), reverse=True)
-        selected_years = st.sidebar.multiselect("Year", year_options, default=year_options)
-    
-        month_options = expense_df["Month"].dropna().unique().tolist()
-        selected_months = st.sidebar.multiselect("Month", month_options, default=month_options)
-    
-        # Apply filters
-        filtered_expense_df = expense_df[
-            (expense_df["Expense By"].isin(selected_person)) &
-            (expense_df["Year"].isin(selected_years)) &
-            (expense_df["Month"].isin(selected_months))
-        ]
-    
-        # ───────────────────────────────────────────────────────────────
-        # 🔹 Section 1: Total Expense Summary
-        total_manual_expense = filtered_expense_df["Amount Used"].sum()
+        # 🔹 Full Summary (before filters)
+        total_manual_expense = expense_df["Amount Used"].sum()
         total_bank_expense = govind_expense_debit + gaurav_expense_debit
         total_expense = total_manual_expense + total_bank_expense
     
@@ -529,8 +510,45 @@ else:
         st.markdown("---")
     
         # ───────────────────────────────────────────────────────────────
-        # 🔹 Section 2: Manually Entered Expenses
-        st.subheader("🧾 Manual Expense Summary")
+        # 🔹 Sidebar Filters
+        st.sidebar.markdown("### 🔍 Filter Expenses")
+    
+        # Get unique values
+        person_options = sorted(expense_df["Expense By"].dropna().unique())
+        year_options = sorted(expense_df["Year"].dropna().unique(), reverse=True)
+        month_options = sorted(expense_df["Month"].dropna().unique(), key=lambda m: pd.to_datetime(m, format="%B").month)
+    
+        # Create session state variables for dropdowns
+        if "selected_person" not in st.session_state:
+            st.session_state.selected_person = person_options[0]
+        if "selected_year" not in st.session_state:
+            st.session_state.selected_year = year_options[0]
+        if "selected_month" not in st.session_state:
+            st.session_state.selected_month = month_options[0]
+    
+        # Dropdown Filters
+        selected_person = st.sidebar.selectbox("Expense By", person_options, index=person_options.index(st.session_state.selected_person))
+        selected_year = st.sidebar.selectbox("Year", year_options, index=year_options.index(st.session_state.selected_year))
+        selected_month = st.sidebar.selectbox("Month", month_options, index=month_options.index(st.session_state.selected_month))
+    
+        # Reset Button
+        if st.sidebar.button("🔄 Reset Filters"):
+            st.session_state.selected_person = person_options[0]
+            st.session_state.selected_year = year_options[0]
+            st.session_state.selected_month = month_options[0]
+            st.experimental_rerun()
+    
+        # ───────────────────────────────────────────────────────────────
+        # 🔹 Apply filters for chart and table only
+        filtered_expense_df = expense_df[
+            (expense_df["Expense By"] == selected_person) &
+            (expense_df["Year"] == selected_year) &
+            (expense_df["Month"] == selected_month)
+        ]
+    
+        # ───────────────────────────────────────────────────────────────
+        # 🔹 Section 2: Manual Expense Chart
+        st.subheader("📊 Monthly Expense Summary")
     
         if not filtered_expense_df.empty:
             monthly_summary = (
@@ -542,7 +560,9 @@ else:
         else:
             st.info("No expense data available for selected filters.")
     
-        with st.expander("🔍 View Bank Expense Transactions"):
+        # ───────────────────────────────────────────────────────────────
+        # 🔹 Bank Expenses (unchanged)
+        with st.expander("🏦 View Bank Expense Transactions"):
             bank_expense_df = bank_df[bank_df['Transaction Type'] == 'Expence_Debit'][['Date', 'Transaction By', 'Amount', 'Reason']]
             st.dataframe(bank_expense_df.sort_values(by="Date", ascending=False))
     
