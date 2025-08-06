@@ -527,7 +527,7 @@ else:
     
     elif page == "Investment":
         st.title("📈 Investment Details")
-
+    
         # Add Investment Button (Top Right)
         col1, col2 = st.columns([6, 1])
         with col2:
@@ -587,7 +587,7 @@ else:
             investor_totals = pie_df.groupby("Investor Name", as_index=False)["Investment Amount"].sum()
     
             if not investor_totals.empty:
-                fig1, ax1 = plt.subplots(figsize=(3.5, 3.5))  # Smaller pie
+                fig1, ax1 = plt.subplots(figsize=(3.5, 3.5))
                 ax1.pie(
                     investor_totals["Investment Amount"],
                     labels=investor_totals["Investor Name"],
@@ -612,21 +612,44 @@ else:
             st.bar_chart(comparison_df)
     
         st.markdown("---")
-        if "Date" in full_investment_df.columns:
-            # Convert to datetime safely (assuming your dates are in day/month/year format)
-            full_investment_df["Date"] = pd.to_datetime(full_investment_df["Date"], dayfirst=True, errors="coerce")
-        
-            # Drop any rows with invalid dates
-            full_investment_df = full_investment_df.dropna(subset=["Date"])
-        
-            # Now sort works
-            full_investment_df = full_investment_df.sort_values(by="Date", ascending=False)
-        
-            # Display
+    
+        # --- 🎯 Investor Filter + Summary ---
+        st.markdown("### 🔎 Filter Investment Records by Investor")
+    
+        # Unique investor names
+        investors_list = full_investment_df["Investor Name"].dropna().unique().tolist()
+        investors_list.sort()
+        investors_list.insert(0, "All")
+    
+        selected_investor = st.selectbox("Select Investor", investors_list)
+    
+        # Filter data
+        if selected_investor != "All":
+            filtered_df = full_investment_df[full_investment_df["Investor Name"] == selected_investor]
+        else:
+            filtered_df = full_investment_df
+    
+        # --- 💼 Total Investment by Each Investor ---
+        st.markdown("#### 💼 Total Investment by Each Investor")
+    
+        summary_by_investor = full_investment_df.groupby("Investor Name")["Investment Amount"].sum().reset_index()
+        summary_by_investor.columns = ["Investor Name", "Total Investment (₹)"]
+        summary_by_investor["Total Investment (₹)"] = summary_by_investor["Total Investment (₹)"].apply(lambda x: f"₹{x:,.2f}")
+    
+        st.dataframe(summary_by_investor)
+        st.markdown("---")
+    
+        # --- 📋 Final Investment Table ---
+        if "Date" in filtered_df.columns:
+            filtered_df["Date"] = pd.to_datetime(filtered_df["Date"], dayfirst=True, errors="coerce")
+            filtered_df = filtered_df.dropna(subset=["Date"])
+            filtered_df = filtered_df.sort_values(by="Date", ascending=False)
+    
             st.subheader("📋 All Investment Records")
-            st.dataframe(full_investment_df)
+            st.dataframe(filtered_df)
         else:
             st.warning("⚠️ 'Date' column not found in investment data.")
+
 
     
     elif page == "Collection Data":
