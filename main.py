@@ -9,13 +9,13 @@ from google.oauth2.service_account import Credentials
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
-
+'''
 # Load Google Sheet IDs securely
 AUTH_SHEET_ID = st.secrets["sheets"]["AUTH_SHEET_ID"]
 COLLECTION_SHEET_ID = st.secrets["sheets"]["COLLECTION_SHEET_ID"]
 EXPENSE_SHEET_ID = st.secrets["sheets"]["EXPENSE_SHEET_ID"]
 INVESTMENT_SHEET_ID = st.secrets["sheets"]["INVESTMENT_SHEET_ID"]
-
+'''
 # Authentication Google Sheets Details
 AUTH_SHEET_NAME = "Sheet1"
 
