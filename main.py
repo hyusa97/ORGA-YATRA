@@ -290,7 +290,7 @@ else:
     page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Investment", "Collection Data", "Bank Transaction" ])
 
     if page == "Dashboard":
-        st.title("📊 Orga Yatra Dashboard")
+        st.title("📊 VayuVolt Dashboard")
         
         # Get latest month
         last_month = df['Month-Year'].max()
