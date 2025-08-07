@@ -589,6 +589,12 @@ else:
         total_filtered_expense = filtered_df["Amount Used"].sum()
         st.metric("📌 Total Filtered Expense", f"₹{total_filtered_expense:,.2f}")
 
+
+        # ✅ Make 'Any Bill' column clickable if it has a URL
+        filtered_df["Any Bill"] = filtered_df["Any Bill"].apply(
+            lambda x: f'<a href="{x}" target="_blank">View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
+        )
+
     
         # ─────────────────────────────────────────────────────
         # 🔹 View Filtered Table
