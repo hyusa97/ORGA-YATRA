@@ -603,6 +603,7 @@ else:
             filtered_df.sort_values(by="Date", ascending=False).to_html(escape=False, index=False),
             unsafe_allow_html=True
         )
+        
 
 
 
