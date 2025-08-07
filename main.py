@@ -597,9 +597,13 @@ else:
 
     
         # ─────────────────────────────────────────────────────
-        # 🔹 View Filtered Table
+        # 🔹 View Filtered Table with Clickable Links
         st.subheader("📋 Filtered Expense Table")
-        st.dataframe(filtered_df.sort_values(by="Date", ascending=False))
+        st.markdown(
+            filtered_df.sort_values(by="Date", ascending=False).to_html(escape=False, index=False),
+            unsafe_allow_html=True
+        )
+
 
 
     
