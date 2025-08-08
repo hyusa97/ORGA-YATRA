@@ -153,8 +153,8 @@ else:
 
     with st.sidebar:
         st.markdown("### Raise Collection")
-        if st.button("Raise collection"):
-            st.success("raised")
+        #if st.button("Raise collection"):
+        #    st.success("raised")
         start_date = date(2025, 8, 1)
         df["Collection Date"]= pd.to_datetime(df["Collection Date"]).dt.date
 
@@ -170,16 +170,28 @@ else:
 
         baseline_count = len(baseline_vehicles)
 
-        missing_dates = counts[counts["count"]< baseline_count]
+        #missing_dates = counts[counts["count"]< baseline_count]
+        missing_dates = counts[counts["count"] < baseline_count]["Collection Date"].tolist()
 
-        st.subheader(f"Dates missing collection entries")
+        selected_date = st.selectbox("Missing date",missing_dates)
+
+        if selected_date:
+            vehicles_on_date = df[df["Collection Date"] == selected_date]["Vehicle No"].unique()
+            missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
+
+        selected_vehicles = st.selectbox("Missing Vehicle No",missing_vehicles)
+
+        if st.button("Raise Collection"):
+            st.success(f"collection raised for {selected_vehicles} on {selected_date}")
+
+        st.subheader(f"Missing collection entries")
         #st.write(missing_dates)
         for _, row in missing_dates.iterrows():
             date_val = row["Collection Date"]
             vehicles_on_date = df[df["Collection Date"] == date_val]["Vehicle No"].unique()
             missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
 
-            st.write(f"📅 {date_val} — Missing Vehicles: {', '.join(missing_vehicles)}")
+            st.write(f"{date_val} — Missing Vehicles: {', '.join(missing_vehicles)}")
 
     if page == "Dashboard":
         st.title("📊 Orga Yatra Dashboard")
