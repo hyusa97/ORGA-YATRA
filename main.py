@@ -6,6 +6,7 @@ import bcrypt
 import matplotlib.pyplot as plt
 import gspread
 from google.oauth2.service_account import Credentials
+from datetime import date
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
@@ -169,6 +170,42 @@ else:
         st.subheader("COLLECTION RECORDS")
         if st.button("Raise collection"):
             st.success("collection raised!")
+        
+        st.markdown("Missing collections (since August 1, 2025)")
+        start_date = date(2025, 8, 1)
+        today = date.today()
+
+        #df= load_data(COLLECTION_CSV_URL)
+        df["Collection Date"] = pd.to_datetime(df["Collection Date"]).dt.date
+
+        all_vehicles = df["Vehicle No"].unique()
+
+        today_df = df[df["Collection Date"] == today]
+        today_vehicles = today_df["Vehicle No"].unique()
+
+        missing = [v for v in all_vehicles if v not in today_vehicles]
+
+        last_records = df.sort_values(by=["Vehicle No","Collection Date"])\
+            .groupby("Vehicle No").last().reset_index()
+        
+        missing_df = last_records[last_records["Vehicle No"].isin(missing)]
+
+        if missing_df.empty:
+            st.success("All Vehicles collected today")
+
+        else:
+            for _, row in missing_df.iterrows():
+                if st.button(f"Raise for {row['Vehicle No']}", key=f"raise_{row['Vehicle No']}"):
+                    new_row = [
+                        today.strftime("%d/%m/%Y"),
+                        row["Vehicle No"],
+                        0,
+                        row["Meter Reading"],
+                        row["Name"]
+                    ]
+                    COLLECTION_sheet.append_row(new_row)
+                    st.success(f"Raised for {row['Vehicle No']}")
+                    st.experimental_rerun()
 
     if page == "Dashboard":
         st.title("📊 Orga Yatra Dashboard")
