@@ -168,7 +168,10 @@ else:
             .reset_index(name ="count")
         )
 
-        baseline_count = len(baseline_vehicles)
+        #baseline_count = len(baseline_vehicles)
+        baseline_count = df[df["Collection Date"] >= start_date] \
+                            .groupby("Collection Date") \
+                            .size().max()
 
         #missing_dates = counts[counts["count"]< baseline_count]
         missing_dates_df = counts[counts["count"] < baseline_count]
