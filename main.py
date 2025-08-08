@@ -147,8 +147,28 @@ else:
     expense_df = load_expense_data(EXPENSE_CSV_URL)
     investment_df = load_investment_data(INVESTMENT_CSV_URL)
 
-    st.sidebar.header("📂 Navigation")
-    page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Investment", "Collection Data"])
+    # new add
+    st.markdown("""
+        <style>
+        [data-testid="stSidebar"] {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .sidebar-content {
+            flex-grow: 1;
+        }
+        </style>
+    """,unsafe_allow_html=True)
+
+    with st.sidebar:
+        st.header("📂 Navigation")
+        page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Investment", "Collection Data"])
+
+        st.markdown("---")
+        st.subheader("COLLECTION RECORDS")
+        if st.button("Raise collection"):
+            st.success("collection raised!")
 
     if page == "Dashboard":
         st.title("📊 Orga Yatra Dashboard")
