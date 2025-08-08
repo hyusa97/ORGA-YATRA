@@ -171,22 +171,23 @@ else:
         baseline_count = len(baseline_vehicles)
 
         #missing_dates = counts[counts["count"]< baseline_count]
-        missing_dates = counts[counts["count"] < baseline_count]["Collection Date"].tolist()
+        missing_dates_df = counts[counts["count"] < baseline_count]
 
-        selected_date = st.selectbox("Missing date",missing_dates)
+        missing_dates_list = missing_dates_df["Collection Date"].tolist()
+        selected_date = st.selectbox("Missing date",missing_dates_list)
 
         if selected_date:
             vehicles_on_date = df[df["Collection Date"] == selected_date]["Vehicle No"].unique()
             missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
 
-        selected_vehicles = st.selectbox("Missing Vehicle No",missing_vehicles)
+            selected_vehicles = st.selectbox("Missing Vehicle No",missing_vehicles)
 
         if st.button("Raise Collection"):
             st.success(f"collection raised for {selected_vehicles} on {selected_date}")
 
         st.subheader(f"Missing collection entries")
         #st.write(missing_dates)
-        for _, row in missing_dates.iterrows():
+        for _, row in missing_dates_df.iterrows():
             date_val = row["Collection Date"]
             vehicles_on_date = df[df["Collection Date"] == date_val]["Vehicle No"].unique()
             missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
