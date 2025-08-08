@@ -6,6 +6,7 @@ import bcrypt
 import matplotlib.pyplot as plt
 import gspread
 from google.oauth2.service_account import Credentials
+from datetime import date
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
@@ -154,7 +155,12 @@ else:
         st.markdown("### Raise Collection")
         if st.button("Raise collection"):
             st.success("raised")
-            
+        start_date = date(2025, 8, 1)
+        df["Collection Date"]= pd.to_datetime(df["Collection Date"]).dt.date
+
+        count_aug1 = df[df["Collection Date"] == start_date].shape[0]
+        st.write(f"Total entries of august 1 : {count_aug1}")
+        
     if page == "Dashboard":
         st.title("📊 Orga Yatra Dashboard")
         total_collection = df['Amount'].sum()
