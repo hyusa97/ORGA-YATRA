@@ -160,6 +160,7 @@ else:
 
         #count_aug1 = df[df["Collection Date"] == start_date].shape[0]
         #st.write(f"Total entries of august 1 : {count_aug1}")
+        baseline_vehicles = df[df["Collection Date"] == start_date]["Vehicle No"].unique()
         counts = (
             df[df["Collection Date"] >= start_date]
             .groupby("Collection Date")
@@ -167,12 +168,18 @@ else:
             .reset_index(name ="count")
         )
 
-        baseline = counts.loc[counts["Collection Date"] == start_date, "count"].values[0]
+        baseline_count = len(baseline_vehicles)
 
-        missing_dates = counts[counts["count"]< baseline]
+        missing_dates = counts[counts["count"]< baseline_count]
 
         st.subheader(f"Dates missing collection entries")
-        st.write(missing_dates)
+        #st.write(missing_dates)
+        for _, row in missing_dates.iterrows():
+            date_val = row["Collection Date"]
+            vehicles_on_date = df[df["Collection Date"] == date_val]["Vehicle No"].unique()
+            missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
+
+            st.write(f"📅 {date_val} — Missing Vehicles: {', '.join(missing_vehicles)}")
 
     if page == "Dashboard":
         st.title("📊 Orga Yatra Dashboard")
