@@ -390,8 +390,8 @@ else:
         st.line_chart(filtered_df.set_index("Collection Date")[["Amount", "Distance"]])
 
 
-        st.write("### 🔍 Recent Collection Data:")
-        st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
+        #st.write("### 🔍 Recent Collection Data:")
+        #st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
 
     elif page == "Monthly Summary":
         st.title("📊 Monthly Summary Report")
