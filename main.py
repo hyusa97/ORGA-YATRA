@@ -158,9 +158,22 @@ else:
         start_date = date(2025, 8, 1)
         df["Collection Date"]= pd.to_datetime(df["Collection Date"]).dt.date
 
-        count_aug1 = df[df["Collection Date"] == start_date].shape[0]
-        st.write(f"Total entries of august 1 : {count_aug1}")
-        
+        #count_aug1 = df[df["Collection Date"] == start_date].shape[0]
+        #st.write(f"Total entries of august 1 : {count_aug1}")
+        counts = (
+            df[df["Collection Date"] >= start_date]
+            .groupby("Collection Date")
+            .size()
+            .reset_index(name ="count")
+        )
+
+        baseline = counts.loc[counts["Collection Date"] == start_date, "count"].values[0]
+
+        missing_dates = counts[counts["count"]< baseline]
+
+        st.subheader(f"Dates missing collection entries")
+        st.write(missing_dates)
+
     if page == "Dashboard":
         st.title("📊 Orga Yatra Dashboard")
         total_collection = df['Amount'].sum()
