@@ -186,7 +186,7 @@ else:
             selected_vehicles = st.selectbox("Missing Vehicle No",missing_vehicles)
 
             if selected_vehicles:
-                amount = st.number_input("Amount",min_value =0.0)
+                amount = st.text_input("Amount")
 
                 if amount == 0:
                     prev_reading = df[df["Vehicle No"] == selected_vehicles] \
@@ -204,7 +204,7 @@ else:
 
                 elif amount>0:
                     email = st.text_input("Email address")
-                    meter_reading = st.number_input("Meter Reading", min_value=0)
+                    meter_reading = st.text_input("Meter Reading")
                     name = st.text_input("Name")
                     received_by = st.text_input("Received By")
 
