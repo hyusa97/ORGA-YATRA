@@ -186,7 +186,7 @@ else:
             selected_vehicles = st.selectbox("Missing Vehicle No",missing_vehicles)
 
             if selected_vehicles:
-                amount = st.text_input("Amount")
+                amount = st.number_input("Amount")
 
                 if amount == 0:
                     prev_reading = df[df["Vehicle No"] == selected_vehicles] \
