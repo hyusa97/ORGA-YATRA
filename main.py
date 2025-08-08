@@ -6,6 +6,7 @@ import bcrypt
 import matplotlib.pyplot as plt
 import gspread
 from google.oauth2.service_account import Credentials
+from datetime import date
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
@@ -392,6 +393,56 @@ else:
 
         #st.write("### 🔍 Recent Collection Data:")
         #st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
+        
+        # Pending Collection
+        df['Collection Date'] = pd.to_datetime(df['Collection Date'])
+
+        latest_date = df['Collection Date'].max()
+
+        all_dates = pd.date_range(start='2025-08-01', end=latest_date)
+        pending_list = []
+        for vehicle, vdf in df.groupby('Vehicle No'):
+            vdf_sorted = vdf.sort_values('Collection Date')
+            non_zero_df = vdf_sorted[vdf_sorted['Amount'] > 0]
+            if not non_zero_df.empty:
+                last_non_zero_date = non_zero_df['Collection Date'].max()
+                last_non_zero_amount = non_zero_df.loc[
+                    non_zero_df['Collection Date'] == last_non_zero_date, 'Amount'
+                    ].values[0]
+            else:
+                last_non_zero_date = None
+                last_non_zero_amount = None
+
+            vehicle_dates = set(vdf['Collection Date'].dt.date)
+            missing_dates = [d.date() for d in all_dates if d.date() not in vehicle_dates]
+
+            zero_days = 0
+            if last_non_zero_date is not None:
+                after_last_non_zero = vdf_sorted[vdf_sorted['Collection Date'] > last_non_zero_date]
+                zero_days = (after_last_non_zero['Amount'] == 0).sum()
+
+            latest_row = vdf_sorted.iloc[-1]
+            driver_name = latest_row['Name']
+            meter_reading = latest_row['Meter Reading']
+            latest_amount = latest_row['Amount']
+
+
+            pending_list.append({
+                'Vehicle No': vehicle,
+                'Pending For Dates': ", ".join(map(str, missing_dates)),
+                'Last Collection Date': last_non_zero_date,
+                'Last Collected Amount': last_non_zero_amount,
+                'Zero Days': zero_days,
+                'Driver Name': driver_name,
+                'Meter Reading': meter_reading,
+                'Amount': latest_amount})
+            
+        pending_df = pd.DataFrame(pending_list)
+
+        st.subheader("📌 Pending Collection Data")
+        st.dataframe(pending_df)
+
+
 
     elif page == "Monthly Summary":
         st.title("📊 Monthly Summary Report")
