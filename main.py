@@ -6,6 +6,7 @@ import bcrypt
 import matplotlib.pyplot as plt
 import gspread
 from google.oauth2.service_account import Credentials
+from datetime import date
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
@@ -149,6 +150,76 @@ else:
 
     st.sidebar.header("📂 Navigation")
     page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Investment", "Collection Data"])
+
+    with st.sidebar:
+        st.markdown("### Raise Collection")
+        #if st.button("Raise collection"):
+        #    st.success("raised")
+        start_date = date(2025, 8, 1)
+        df["Collection Date"]= pd.to_datetime(df["Collection Date"]).dt.date
+
+        #count_aug1 = df[df["Collection Date"] == start_date].shape[0]
+        #st.write(f"Total entries of august 1 : {count_aug1}")
+        baseline_vehicles = df[df["Collection Date"] == start_date]["Vehicle No"].unique()
+        counts = (
+            df[df["Collection Date"] >= start_date]
+            .groupby("Collection Date")
+            .size()
+            .reset_index(name ="count")
+        )
+
+        #baseline_count = len(baseline_vehicles)
+        baseline_count = df[df["Collection Date"] >= start_date] \
+                            .groupby("Collection Date") \
+                            .size().max()
+
+        #missing_dates = counts[counts["count"]< baseline_count]
+        missing_dates_df = counts[counts["count"] < baseline_count]
+
+        missing_dates_list = missing_dates_df["Collection Date"].tolist()
+        selected_date = st.selectbox("Missing date",missing_dates_list)
+
+        if selected_date:
+            vehicles_on_date = df[df["Collection Date"] == selected_date]["Vehicle No"].unique()
+            missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
+
+            selected_vehicles = st.selectbox("Missing Vehicle No",missing_vehicles)
+
+            if selected_vehicles:
+                amount = st.number_input("Amount")
+
+                if amount == 0:
+                    prev_reading = df[df["Vehicle No"] == selected_vehicles] \
+                        .sort_values("Collection Date") \
+                        .iloc[-1]["Meter Reading"]
+                    st.write(f"Previous Meter Reading: **{prev_reading}**")
+
+                    email = st.text_input("Email address")
+                    name = st.text_input("Name")
+                    received_by = st.text_input("Received By")
+
+
+                    if st.button("Raise Collection"):
+                        st.success(f"collection raised for {selected_vehicles} on {selected_date}")
+
+                elif amount>0:
+                    email = st.text_input("Email address")
+                    meter_reading = st.text_input("Meter Reading")
+                    name = st.text_input("Name")
+                    received_by = st.text_input("Received By")
+
+                    if st.button("Raise Collection"):
+                        st.success(f"collection raised for {selected_vehicles} on {selected_date}")
+
+
+        st.subheader(f"Missing collection entries")
+        #st.write(missing_dates)
+        for _, row in missing_dates_df.iterrows():
+            date_val = row["Collection Date"]
+            vehicles_on_date = df[df["Collection Date"] == date_val]["Vehicle No"].unique()
+            missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
+
+            st.write(f"{date_val} — Missing Vehicles: {', '.join(missing_vehicles)}")
 
     if page == "Dashboard":
         st.title("📊 Orga Yatra Dashboard")
