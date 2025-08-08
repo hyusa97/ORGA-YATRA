@@ -185,8 +185,32 @@ else:
 
             selected_vehicles = st.selectbox("Missing Vehicle No",missing_vehicles)
 
-        if st.button("Raise Collection"):
-            st.success(f"collection raised for {selected_vehicles} on {selected_date}")
+            if selected_vehicles:
+                amount = st.number_input("Amount",min_value =0.0, step =1.0)
+
+                if amount == 0:
+                    prev_reading = df[df["Vehicle No"] == selected_vehicles] \
+                        .sort_values("Collection Date") \
+                        .iloc[-1]["Meter Reading"]
+                    st.write(f"Previous Meter Reading: **{prev_reading}**")
+
+                    email = st.text_input("Email address")
+                    name = st.text_input("Name")
+                    received_by = st.text_input("Received By")
+
+
+                    if st.button("Raise Collection"):
+                        st.success(f"collection raised for {selected_vehicles} on {selected_date}")
+
+                elif amount>0:
+                    email = st.text_input("Email address")
+                    meter_reading = st.number_input("Meter Reading", min_value=0, step=1)
+                    name = st.text_input("Name")
+                    received_by = st.text_input("Received By")
+
+                    if st.button("Raise Collection"):
+                        st.success(f"collection raised for {selected_vehicles} on {selected_date}")
+
 
         st.subheader(f"Missing collection entries")
         #st.write(missing_dates)
