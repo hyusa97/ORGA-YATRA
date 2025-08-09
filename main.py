@@ -393,11 +393,9 @@ else:
         st.line_chart(filtered_df.set_index("Collection Date")[["Amount", "Distance"]])
 
 
-        #st.write("### 🔍 Recent Collection Data:")
-        #st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
-
-
         ## changes start here by Ayush
+
+        
         # Pending Collection
         df['Vehicle No'] = df['Vehicle No'].astype(str).str.strip()
         #df['Collection Date'] = pd.to_datetime(df['Collection Date'])
@@ -496,7 +494,7 @@ else:
             #missing_df.index = missing_df.index +1
             st.dataframe(missing_df, hide_index=True)
 
-        ## changes end here ##
+        ## changes by ayush end here ##
 
     elif page == "Monthly Summary":
         st.title("📊 Monthly Summary Report")
@@ -1063,7 +1061,7 @@ else:
                 return f"-₹{amt:,.2f}"
             return f"₹{amt:,.2f}"
     
-        display_df["Formatted Amount"] = filtered_df.apply(format_amount, axis=1)
+        display_df["Amount"] = filtered_df.apply(format_amount, axis=1)
     
         # ✅ Make Bill column clickable if it has a URL
         display_df["Bill"] = display_df["Bill"].apply(
@@ -1078,8 +1076,8 @@ else:
                     return "color: red"
             return ""
     
-        styled = display_df[["Date", "Transaction By", "Transaction Type", "Reason", "Formatted Amount", "Bill"]].sort_values(by="Date", ascending=False)
-        styled_df = styled.style.applymap(color_amount, subset=["Formatted Amount"])
+        styled = display_df[["Date", "Transaction By", "Transaction Type", "Reason", "Amount", "Bill"]].sort_values(by="Date", ascending=False)
+        styled_df = styled.style.applymap(color_amount, subset=["Amount"])
     
         # 💡 Full Width Styling for Table
         st.markdown(
