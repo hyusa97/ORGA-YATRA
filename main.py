@@ -397,29 +397,35 @@ else:
 
         
         # Pending Collection
+        # Clean 'Vehicle No' column: ensure all values are strings with no leading/trailing spaces
         df['Vehicle No'] = df['Vehicle No'].astype(str).str.strip()
-        #df['Collection Date'] = pd.to_datetime(df['Collection Date'])
+        # Convert 'Collection Date' to datetime format (day first), coerce invalid values to NaT, and keep only the date part
         df['Collection Date'] = pd.to_datetime(df['Collection Date'], dayfirst=True, errors='coerce').dt.date
         
+        # Start date for pending collection tracking
         start_date = date(2025, 8, 1)
         
+        # Get all unique vehicle numbers
         baseline_vehicles = df['Vehicle No'].unique()
+
+        # If no vehicles found for the dataset, show warning
         if len(baseline_vehicles)==0:
             st.warning("no rows found for 1 august")
             baseline_vehicles = df['Vehicle No'].unique()
 
-        #latest_date = df['Collection Date'].max()
+        # Get the current time in Asia/Kolkata timezone and Get today's date and yesterday's date
         tz = pytz.timezone("Asia/Kolkata")
         now = datetime.now(tz)
         latest_date = date.today()
         yesterday = latest_date - timedelta(days=1)
         cur_hour = now.hour
+        # If current time is after 4 PM, include today in the date range, else only till yesterday
         if cur_hour >= 16:
             all_dates = pd.date_range(start=start_date, end=latest_date).date
         else:
             all_dates = pd.date_range(start=start_date, end= yesterday).date
 
-        #first collection date for each vehicle
+        # Determine baseline collection dates for each vehicle 
         first_dates = df.groupby('Vehicle No')['Collection Date'].min()
         baseline_dates = {}
         for v,f_date in first_dates.items():
@@ -428,18 +434,25 @@ else:
             else:
                 baseline_dates[v] = f_date
 
-    
+        # --- Identify missing collection entries
         missing_entries = []
 
         for cur_date in all_dates:
+            # Vehicles that should be active on this date
             active_vehicles = [v for v, base_date in baseline_dates.items() if base_date <= cur_date]
+            # Vehicles that actually have a collection entry on this date
             vehicles_on_date = df[df['Collection Date'] == cur_date]['Vehicle No'].unique()
+
+            # Vehicles that are missing collection on this date
             missing_vehicles = [v for v in active_vehicles if v not in vehicles_on_date]
             for v in missing_vehicles:
+                # Get vehicle's collection history before the current date
                 vehicle_history= df[(df['Vehicle No']== v) & (df['Collection Date']< cur_date)].sort_values('Collection Date')
 
+                # Filter rows with non-zero collection amounts
                 non_zero_history = vehicle_history[vehicle_history['Amount'] > 0]
                 if not non_zero_history.empty:
+                    # Last date when non-zero collection happened
                     last_non_zero_row = non_zero_history.iloc[-1]
                     last_non_zero_date = last_non_zero_row['Collection Date']
                     last_non_zero_amount = last_non_zero_row['Amount']
@@ -448,15 +461,19 @@ else:
                 
 
                 else:
+                    # If no non-zero collection ever happened
                     last_non_zero_date =None
                     last_non_zero_amount = None
                     last_meter_reading = None
-                    # last driver name 
+
+                    # Get last driver name if any history exists 
                     if not vehicle_history.empty:
                         last_driver_name = vehicle_history.iloc[-1]['Name']
                     else:
                         last_driver_name = None
 
+                
+                # Calculate number of days since last non-zero collection with zero amount
                 if last_non_zero_date:
                     zero_days = vehicle_history[
                         (vehicle_history['Collection Date']> last_non_zero_date)& (vehicle_history['Amount'] == 0)
@@ -474,8 +491,7 @@ else:
 
         # Raise Collection Button
         google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
-        
-        # Raise collection button
+                
         col1, col2 = st.columns([6, 1])
         with col2:
             st.markdown(
@@ -485,8 +501,7 @@ else:
                 unsafe_allow_html=True
             )
 
-
-
+        # Display pending collection data        
         st.subheader("🕒 Pending Collection Data")
         if missing_df.empty:
             st.success("No missing entries")
