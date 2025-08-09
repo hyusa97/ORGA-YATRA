@@ -453,7 +453,11 @@ else:
                     last_non_zero_date =None
                     last_non_zero_amount = None
                     last_meter_reading = None
-                    last_driver_name = None
+                    # last driver name 
+                    if not vehicle_history.empty:
+                        last_driver_name = vehicle_history.iloc[-1]['Name']
+                    else:
+                        last_driver_name = None
 
                 if last_non_zero_date:
                     zero_days = vehicle_history[
@@ -462,12 +466,6 @@ else:
 
                 else:
                     zero_days = 0
-
-                # last driver name 
-                if not vehicle_history.empty:
-                    last_driver_name = vehicle_history.iloc[-1]['Name']
-                else:
-                    last_driver_name = None
 
                 
                 
