@@ -464,26 +464,15 @@ else:
         # Raise Collection Button
         google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
         
-        st.markdown(
-            f"""
-            <a href="{google_form_url}" target="_blank">
-                <button style="
-                    background-color: #4CAF50;
-                    border: none;
-                    color: white;
-                    padding: 10px 20px;
-                    text-align: center;
-                    text-decoration: none;
-                    display: inline-block;
-                    font-size: 16px;
-                    border-radius: 8px;
-                    cursor: pointer;">
-                    ➕ Add Collection
-                </button>
-            </a>
-            """,
-            unsafe_allow_html=True
-        )
+        # Raise collection button
+        col1, col2 = st.columns([6, 1])
+        with col2:
+            st.markdown(
+                f'<a href="https://forms.gle/ZyvCBLFaPC1szPGd7" target="_blank">'
+                f'<button style="background-color:#f44336; color:white; padding:8px 16px; font-size:14px; border:none; border-radius:5px;">➕ Add Collection</button>'
+                f'</a>',
+                unsafe_allow_html=True
+            )
 
 
 
