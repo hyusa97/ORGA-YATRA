@@ -397,50 +397,28 @@ else:
         # Pending Collection
         df['Collection Date'] = pd.to_datetime(df['Collection Date'])
 
+        start_date = date(2025, 8, 1)
         latest_date = df['Collection Date'].max()
 
-        all_dates = pd.date_range(start='2025-08-01', end=latest_date)
-        pending_list = []
-        for vehicle, vdf in df.groupby('Vehicle No'):
-            vdf_sorted = vdf.sort_values('Collection Date')
-            non_zero_df = vdf_sorted[vdf_sorted['Amount'] > 0]
-            if not non_zero_df.empty:
-                last_non_zero_date = non_zero_df['Collection Date'].max()
-                last_non_zero_amount = non_zero_df.loc[
-                    non_zero_df['Collection Date'] == last_non_zero_date, 'Amount'
-                    ].values[0]
-            else:
-                last_non_zero_date = None
-                last_non_zero_amount = None
+        baseline_vehicles = df[df['Collection Date'] == start_date]['Vehicle No'].unique()
+        all_dates = pd.date_range(start= start_date, end=latest_date).date
+        missing_entries = []
 
-            vehicle_dates = set(vdf['Collection Date'].dt.date)
-            missing_dates = [d.date() for d in all_dates if d.date() not in vehicle_dates]
-
-            zero_days = 0
-            if last_non_zero_date is not None:
-                after_last_non_zero = vdf_sorted[vdf_sorted['Collection Date'] > last_non_zero_date]
-                zero_days = (after_last_non_zero['Amount'] == 0).sum()
-
-            latest_row = vdf_sorted.iloc[-1]
-            driver_name = latest_row['Name']
-            meter_reading = latest_row['Meter Reading']
-            latest_amount = latest_row['Amount']
+        for cur_date in all_dates:
+            vehicles_on_date = df[df['Collection Date'] == cur_date]['Vehicle No'].unique()
+            missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
+            for v in missing_vehicles:
+                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v})
+        
+        missing_df = pd.DataFrame(missing_entries)
 
 
-            pending_list.append({
-                'Vehicle No': vehicle,
-                'Pending For Dates': ", ".join(map(str, missing_dates)),
-                'Last Collection Date': last_non_zero_date,
-                'Last Collected Amount': last_non_zero_amount,
-                'Zero Days': zero_days,
-                'Driver Name': driver_name,
-                'Meter Reading': meter_reading,
-                'Amount': latest_amount})
-            
-        pending_df = pd.DataFrame(pending_list)
-
+           
         st.subheader("📌 Pending Collection Data")
-        st.dataframe(pending_df)
+        if missing_df.empty:
+            st.success("No missing entries")
+        else:
+            st.dataframe(missing_df)
 
 
 
