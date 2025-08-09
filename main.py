@@ -395,13 +395,29 @@ else:
         #st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
         
         # Pending Collection
-        df['Collection Date'] = pd.to_datetime(df['Collection Date'])
+        df['Vehicle No'] = df['Vehicle No'].astype(str).str.strip()
+        #df['Collection Date'] = pd.to_datetime(df['Collection Date'])
+        df['Collection Date'] = pd.to_datetime(df['Collection Date'], dayfirst=True, errors='coerce').dt.date
 
         start_date = date(2025, 8, 1)
-        latest_date = df['Collection Date'].max()
+        st.write("Date range in data:", df['Collection Date'].min(), "to", df['Collection Date'].max())
+        st.write("Total rows:", len(df))
+        st.write("Unique vehicles in dataset:", df['Vehicle No'].nunique())
+        st.write("Count of rows on Aug 1, 2025:", df[df['Collection Date'] == start_date].shape[0])
+        st.dataframe(df[df['Collection Date'] == start_date].head())
 
         baseline_vehicles = df[df['Collection Date'] == start_date]['Vehicle No'].unique()
-        all_dates = pd.date_range(start= start_date, end=latest_date).date
+        if len(baseline_vehicles)==0:
+            st.warning("no rows found for 1 august")
+            baseline_vehicles = df['Vehicle No'].unique()
+
+        latest_date = df['Collection Date'].nax()
+        if pd.isna(latest_date):
+            st.error("No valid dates")
+        else:
+            all_dates = pd.date_range(start= start_date, end=latest_date).date
+
+    
         missing_entries = []
 
         for cur_date in all_dates:
