@@ -426,37 +426,15 @@ else:
 
         for cur_date in all_dates:
             active_vehicles = [v for v, base_date in baseline_dates.items() if base_date <= cur_date]
+            vehicles_upto_date = df[df['Collection Date'] <= cur_date]['Vehicle No'].unique()
             vehicles_on_date = df[df['Collection Date'] == cur_date]['Vehicle No'].unique()
-            missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
+            missing_vehicles = [v for v in vehicles_upto_date if v not in vehicles_on_date]
             for v in missing_vehicles:
-                vehicle_history= df[(df['Vehicle No']== v) & (df['Collection Date']< cur_date)].sort_values('Collection Date')
+                missing_entries.append({"Missing Date": cur_date, "Vehicle No": v})
 
-                non_zero_history = vehicle_history[vehicle_history['Amount'] > 0]
-                if not non_zero_history.empty:
-                    last_non_zero_row = non_zero_history.iloc[-1]
-                    last_non_zero_date = last_non_zero_row['Collection Date']
-                    last_non_zero_amount = last_non_zero_row['Amount']
+
                 
-
-                else:
-                    last_non_zero_date =None
-                    last_non_zero_amount = None
-
-                if last_non_zero_date:
-                    zero_days = vehicle_history[
-                        (vehicle_history['Collection Date']> last_non_zero_date)& (vehicle_history['Amount'] == 0)
-                    ].shape[0]
-
-                else:
-                    zero_days = 0
-
-                # last driver name
-                if not vehicle_history.empty:
-                    last_driver_name = vehicle_history.iloc[-1]['Name']
-                else:
-                    last_driver_name = None
-                
-                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Collection date": last_non_zero_date, "Last Collected Amount": last_non_zero_amount, "Zero Days":zero_days, "Last Driver Name": last_driver_name })
+                #missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Collection date": last_non_zero_date, "Last Collected Amount": last_non_zero_amount, "Zero Days":zero_days, "Last Driver Name": last_driver_name })
         
         missing_df = pd.DataFrame(missing_entries)
 
