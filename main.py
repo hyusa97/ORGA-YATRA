@@ -408,7 +408,7 @@ else:
             baseline_vehicles = df['Vehicle No'].unique()
 
         latest_date = df['Collection Date'].max()
-
+        all_dates = pd.date_range(start=start_date, end=latest_date).date
 
         #first collection date for each vehicle
         first_dates = df.groupby('Vehicle No')['Collection Date'].min()
