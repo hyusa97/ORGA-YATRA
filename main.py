@@ -444,21 +444,21 @@ else:
         missing_df = pd.DataFrame(missing_entries)
 
 
-           
+        # Raise Collection Button
+        google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
+        col1, col2, col3 = st.columns([7, 1, 1])
+        with col2:
+            if st.button("➕ Add Collection", type="primary"):
+                st.markdown(f"[Opening Google Form...]({google_form_url})", unsafe_allow_html=True)
+                st.experimental_set_query_params(open_form="1")
+                st.write(f"[Click here to open the form]({google_form_url})")
+                
+                           
         st.subheader("📌 Pending Collection Data")
         if missing_df.empty:
             st.success("No missing entries")
         else:
             st.dataframe(missing_df)
-
-        # Raise Collection Button
-        google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
-        col1, col2, col3 = st.columns([7, 1, 1])
-        with col3:
-            if st.button("➕ Add Collection", type="primary"):
-                st.markdown(f"[Opening Google Form...]({google_form_url})", unsafe_allow_html=True)
-                st.experimental_set_query_params(open_form="1")
-                st.write(f"[Click here to open the form]({google_form_url})")
 
 
     elif page == "Monthly Summary":
