@@ -394,7 +394,7 @@ else:
 
         #st.write("### 🔍 Recent Collection Data:")
         #st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
-        
+        ## changes start here by Ayush
         # Pending Collection
         df['Vehicle No'] = df['Vehicle No'].astype(str).str.strip()
         #df['Collection Date'] = pd.to_datetime(df['Collection Date'])
@@ -434,6 +434,7 @@ else:
                     last_non_zero_row = non_zero_history.iloc[-1]
                     last_non_zero_date = last_non_zero_row['Collection Date']
                     last_non_zero_amount = last_non_zero_row['Amount']
+                    last_meter_reading = last_non_zero_row['Meter Reading']
                 
 
                 else:
@@ -448,13 +449,15 @@ else:
                 else:
                     zero_days = 0
 
-                # last driver name
+                # last driver name 
                 if not vehicle_history.empty:
                     last_driver_name = vehicle_history.iloc[-1]['Name']
                 else:
                     last_driver_name = None
+
                 
-                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Collection date": last_non_zero_date, "Last Collected Amount": last_non_zero_amount, "Zero Days":zero_days, "Last Driver Name": last_driver_name })
+                
+                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Collection date": last_non_zero_date, "Last Collected Amount": last_non_zero_amount, "Zero Days":zero_days, "Last Assigned Name": last_driver_name,  "Last Meter Reading": last_meter_reading })
         
         missing_df = pd.DataFrame(missing_entries)
 
@@ -481,6 +484,7 @@ else:
             missing_df.index = missing_df.index +1
             st.dataframe(missing_df)
 
+        ## changes end here ##
 
     elif page == "Monthly Summary":
         st.title("📊 Monthly Summary Report")
