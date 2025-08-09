@@ -491,7 +491,7 @@ else:
         if missing_df.empty:
             st.success("No missing entries")
         else:
-            df.index = df.index +1
+            missing_df.index = missing_df.index +1
             st.dataframe(missing_df)
 
 
