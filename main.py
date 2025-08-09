@@ -887,9 +887,6 @@ else:
         else:
             filtered_df = df.copy()
     
-        # Total collection for selected vehicle
-        selected_total = filtered_df["Amount"].sum()
-        st.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
     
         st.markdown("### 📈 Collection Trend")
     
@@ -933,6 +930,10 @@ else:
         
         # Rerender chart with filtered data
         st.line_chart(filtered_pivot)
+
+        # Total collection for selected vehicle
+        selected_total = filtered_df["Amount"].sum()
+        st.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
 
     
         st.markdown("### 📄 Collection Records")
