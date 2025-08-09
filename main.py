@@ -881,7 +881,7 @@ else:
     # edit by ayush
         # Vehicle filter
         vehicle_list = ["All"] + sorted(df["Vehicle No"].unique())
-        selected_vehicle = st.sidebar.selectbox("🚗 Filter by Vehicle", vehicle_list)
+        selected_vehicle = st.sidebar.selectbox("###🚗 Filter by Vehicle", vehicle_list)
     
         if selected_vehicle != "All":
             filtered_df = df[df["Vehicle No"] == selected_vehicle]
