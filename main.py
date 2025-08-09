@@ -436,7 +436,7 @@ else:
         for cur_date in all_dates:
             active_vehicles = [v for v, base_date in baseline_dates.items() if base_date <= cur_date]
             vehicles_on_date = df[df['Collection Date'] == cur_date]['Vehicle No'].unique()
-            missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
+            missing_vehicles = [v for v in active_vehicles if v not in vehicles_on_date]
             for v in missing_vehicles:
                 vehicle_history= df[(df['Vehicle No']== v) & (df['Collection Date']< cur_date)].sort_values('Collection Date')
 
