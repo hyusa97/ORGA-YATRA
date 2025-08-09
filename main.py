@@ -407,16 +407,8 @@ else:
             st.warning("no rows found for 1 august")
             baseline_vehicles = df['Vehicle No'].unique()
 
-        latest_collection_date = df['Collection Date'].max()
-        if datetime.now().time() >= time(16, 0):
-             latest_date = max(latest_collection_date, date.today())
-        else:
-            latest_date = latest_collection_date
+        latest_date = df['Collection Date'].max()
 
-        if pd.isna(latest_date):
-            st.error("No valid dates")
-        else:
-            all_dates = pd.date_range(start= start_date, end=latest_date).date
 
         #first collection date for each vehicle
         first_dates = df.groupby('Vehicle No')['Collection Date'].min()
