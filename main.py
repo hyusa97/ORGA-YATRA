@@ -440,6 +440,7 @@ else:
                 else:
                     last_non_zero_date =None
                     last_non_zero_amount = None
+                    last_meter_reading = None
 
                 if last_non_zero_date:
                     zero_days = vehicle_history[
