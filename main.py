@@ -6,7 +6,7 @@ import bcrypt
 import matplotlib.pyplot as plt
 import gspread
 from google.oauth2.service_account import Credentials
-from datetime import date
+from datetime import date, time, datetime
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
@@ -407,7 +407,12 @@ else:
             st.warning("no rows found for 1 august")
             baseline_vehicles = df['Vehicle No'].unique()
 
-        latest_date = df['Collection Date'].max()
+        latest_collection_date = df['Collection Date'].max()
+        if datetime.now().time() >= time(16, 0):
+             latest_date = max(latest_collection_date, date.today())
+        else:
+            latest_date = latest_collection_date
+
         if pd.isna(latest_date):
             st.error("No valid dates")
         else:
