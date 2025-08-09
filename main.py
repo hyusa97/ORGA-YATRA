@@ -6,7 +6,8 @@ import bcrypt
 import matplotlib.pyplot as plt
 import gspread
 from google.oauth2.service_account import Credentials
-from datetime import date, time, datetime
+from datetime import date, time, datetime, timedelta
+import pytz
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
@@ -394,6 +395,8 @@ else:
 
         #st.write("### 🔍 Recent Collection Data:")
         #st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
+
+
         ## changes start here by Ayush
         # Pending Collection
         df['Vehicle No'] = df['Vehicle No'].astype(str).str.strip()
@@ -407,8 +410,16 @@ else:
             st.warning("no rows found for 1 august")
             baseline_vehicles = df['Vehicle No'].unique()
 
-        latest_date = df['Collection Date'].max()
-        all_dates = pd.date_range(start=start_date, end=latest_date).date
+        #latest_date = df['Collection Date'].max()
+        tz = pytz.timezone("Asia/Kolkata")
+        now = datetime.now(tz)
+        latest_date = date.today()
+        yesterday = latest_date - timedelta(days=1)
+        cur_hour = now.hour
+        if cur_hour >= 16:
+            all_dates = pd.date_range(start=start_date, end=latest_date).date
+        else:
+            all_dates = pd.date_range(start=start_date, end= yesterday).date
 
         #first collection date for each vehicle
         first_dates = df.groupby('Vehicle No')['Collection Date'].min()
