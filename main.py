@@ -411,7 +411,7 @@ else:
             st.warning("no rows found for 1 august")
             baseline_vehicles = df['Vehicle No'].unique()
 
-        latest_date = df['Collection Date'].nax()
+        latest_date = df['Collection Date'].max()
         if pd.isna(latest_date):
             st.error("No valid dates")
         else:
