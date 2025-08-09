@@ -412,10 +412,20 @@ else:
         else:
             all_dates = pd.date_range(start= start_date, end=latest_date).date
 
+        #first collection date for each vehicle
+        first_dates = df.groupby('Vehicle No')['Collection Date'].min()
+        baseline_dates = {}
+        for v,f_date in first_dates.items():
+            if f_date <= start_date:
+                baseline_dates[v] = start_date
+            else:
+                baseline_dates[v] = f_date
+
     
         missing_entries = []
 
         for cur_date in all_dates:
+            active_vehicles = [v for v, base_date in baseline_dates.items() if base_date <= cur_date]
             vehicles_on_date = df[df['Collection Date'] == cur_date]['Vehicle No'].unique()
             missing_vehicles = [v for v in baseline_vehicles if v not in vehicles_on_date]
             for v in missing_vehicles:
@@ -426,6 +436,7 @@ else:
                     last_non_zero_row = non_zero_history.iloc[-1]
                     last_non_zero_date = last_non_zero_row['Collection Date']
                     last_non_zero_amount = last_non_zero_row['Amount']
+                
 
                 else:
                     last_non_zero_date =None
@@ -438,26 +449,49 @@ else:
 
                 else:
                     zero_days = 0
+
+                # last driver name
+                if not vehicle_history.empty:
+                    last_driver_name = vehicle_history.iloc[-1]['Name']
+                else:
+                    last_driver_name = None
                 
-                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Collection date": last_non_zero_date, "Last Collected Amount": last_non_zero_amount, "Zero Days":zero_days })
+                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Collection date": last_non_zero_date, "Last Collected Amount": last_non_zero_amount, "Zero Days":zero_days, "Last Driver Name": last_driver_name })
         
         missing_df = pd.DataFrame(missing_entries)
 
 
         # Raise Collection Button
         google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
-        col1, col2, col3 = st.columns([25, 4, 1])
-        with col2:
-            if st.button("Add Collection ➕", type="primary"):
-                st.markdown(f"[Open Google Form]({google_form_url})", unsafe_allow_html=True)
-                #st.experimental_set_query_params(open_form="1")
-                #st.write(f"[Click here to open the form]({google_form_url})")
+        
+        st.markdown(
+            f"""
+            <a href="{google_form_url}" target="_blank">
+                <button style="
+                    background-color: #4CAF50;
+                    border: none;
+                    color: white;
+                    padding: 10px 20px;
+                    text-align: center;
+                    text-decoration: none;
+                    display: inline-block;
+                    font-size: 16px;
+                    border-radius: 8px;
+                    cursor: pointer;">
+                    ➕ Add Collection
+                </button>
+            </a>
+            """,
+            unsafe_allow_html=True
+        )
+
 
 
         st.subheader("📌 Pending Collection Data")
         if missing_df.empty:
             st.success("No missing entries")
         else:
+            df.index = df.index +1
             st.dataframe(missing_df)
 
 
