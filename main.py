@@ -453,7 +453,7 @@ else:
 
         # Raise Collection Button
         google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
-        col1, col2, col3 = st.columns([8, 1, 1])
+        col1, col2, col3 = st.columns([7, 1, 1])
         with col3:
             if st.button("➕ Add Collection", type="primary"):
                 st.markdown(f"[Opening Google Form...]({google_form_url})", unsafe_allow_html=True)
