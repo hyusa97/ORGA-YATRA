@@ -446,12 +446,14 @@ else:
                     last_non_zero_date = last_non_zero_row['Collection Date']
                     last_non_zero_amount = last_non_zero_row['Amount']
                     last_meter_reading = last_non_zero_row['Meter Reading']
+                    last_driver_name = last_non_zero_row['Name']
                 
 
                 else:
                     last_non_zero_date =None
                     last_non_zero_amount = None
                     last_meter_reading = None
+                    last_driver_name = None
 
                 if last_non_zero_date:
                     zero_days = vehicle_history[
@@ -469,7 +471,7 @@ else:
 
                 
                 
-                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Collection date": last_non_zero_date, "Last Collected Amount": last_non_zero_amount, "Zero Days":zero_days, "Last Assigned Name": last_driver_name,  "Last Meter Reading": last_meter_reading })
+                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Meter Reading": last_meter_reading, "Last Assigned Name": last_driver_name, "Last Collected Amount": last_non_zero_amount, "Last Collection date": last_non_zero_date, "Zero Collection from(Days)":zero_days })
         
         missing_df = pd.DataFrame(missing_entries)
 
@@ -489,12 +491,12 @@ else:
 
 
 
-        st.subheader("📌 Pending Collection Data")
+        st.subheader("🕒 Pending Collection Data")
         if missing_df.empty:
             st.success("No missing entries")
         else:
-            missing_df.index = missing_df.index +1
-            st.dataframe(missing_df)
+            #missing_df.index = missing_df.index +1
+            st.dataframe(missing_df, hide_index=True)
 
         ## changes end here ##
 
