@@ -400,12 +400,6 @@ else:
         df['Collection Date'] = pd.to_datetime(df['Collection Date'], dayfirst=True, errors='coerce').dt.date
 
         start_date = date(2025, 8, 1)
-        '''
-        st.write("Date range in data:", df['Collection Date'].min(), "to", df['Collection Date'].max())
-        st.write("Total rows:", len(df))
-        st.write("Unique vehicles in dataset:", df['Vehicle No'].nunique())
-        st.write("Count of rows on Aug 1, 2025:", df[df['Collection Date'] == start_date].shape[0])
-        st.dataframe(df[df['Collection Date'] == start_date].head()) '''
 
         baseline_vehicles = df[df['Collection Date'] == start_date]['Vehicle No'].unique()
         if len(baseline_vehicles)==0:
