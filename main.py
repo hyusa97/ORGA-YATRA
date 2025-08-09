@@ -398,10 +398,10 @@ else:
         df['Vehicle No'] = df['Vehicle No'].astype(str).str.strip()
         #df['Collection Date'] = pd.to_datetime(df['Collection Date'])
         df['Collection Date'] = pd.to_datetime(df['Collection Date'], dayfirst=True, errors='coerce').dt.date
-
+        
         start_date = date(2025, 8, 1)
-
-        baseline_vehicles = df[df['Collection Date'] == start_date]['Vehicle No'].unique()
+        
+        baseline_vehicles = df['Vehicle No'].unique()
         if len(baseline_vehicles)==0:
             st.warning("no rows found for 1 august")
             baseline_vehicles = df['Vehicle No'].unique()
