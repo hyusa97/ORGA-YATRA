@@ -893,6 +893,7 @@ else:
         # Total collection for selected vehicle
         selected_total = filtered_df["Amount"].sum()
         st.sidebar.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
+        
     ## edit by ayush
     
         st.markdown("### 📈 Collection Trend")
