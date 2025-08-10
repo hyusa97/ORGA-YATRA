@@ -893,12 +893,13 @@ else:
     
         st.markdown("---")
     
-    # edit by ayush
+    # edit by ayush starts
         # Vehicle filter
         st.sidebar.markdown("### 🚗 Filter by Vehicle")
         #vehicle_list = ["All"] + sorted(df["Vehicle No"].unique())
         #selected_vehicle = st.sidebar.selectbox("###🚗 Filter by Vehicle", vehicle_list)
         selected_vehicle = st.sidebar.selectbox("", ["All"] + sorted(df["Vehicle No"].unique()))
+        
     
         if selected_vehicle != "All":
             filtered_df = df[df["Vehicle No"] == selected_vehicle]
@@ -907,9 +908,11 @@ else:
 
         # Total collection for selected vehicle
         selected_total = filtered_df["Amount"].sum()
+
         st.sidebar.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
+
         
-    ## edit by ayush
+    ## edit by ayush ends 
     
         st.markdown("### 📈 Collection Trend")
     
@@ -953,6 +956,19 @@ else:
         
         # Rerender chart with filtered data
         st.line_chart(filtered_pivot)
+
+        ##edit by ayush starts
+        col1, col2, col3 = st.columns(3)
+        col1.metric("💰 **Total Collection **: ₹{selected_total:,.2f}}")
+        
+        col2.metric("🏆 Selected Vehicle", selected_vehicle)
+        
+        col3.metric("📄 Total Records", len(filtered_df))
+
+
+        ##edit by ayush ends
+
+        st.markdown("---")
 
         st.markdown("### 📄 Collection Records")
     
