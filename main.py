@@ -894,84 +894,24 @@ else:
         st.markdown("---")
     
     # edit by ayush starts
-        st.sidebar.markdown("---")
         # Vehicle filter
         st.sidebar.markdown("### 🚗 Filter by Vehicle")
         #vehicle_list = ["All"] + sorted(df["Vehicle No"].unique())
         #selected_vehicle = st.sidebar.selectbox("###🚗 Filter by Vehicle", vehicle_list)
         selected_vehicle = st.sidebar.selectbox("", ["All"] + sorted(df["Vehicle No"].unique()))
-        
-        #year filter
-        st.sidebar.markdown("### 📅 Filter by Year")
-        year_option = st.sidebar.selectbox(
-            "",
-            ["All", "1 Year", "3 Years", "Custom (From–To)"]
-        )
-
-        custom_year_start, custom_year_end = None, None
-        if year_option == "Custom (From-To)":
-            custom_year_start = st.sidebar.date_input("Start Year", value=pd.to_datetime(df["Collection Date"]).min().date())
-            custom_yaer_end = st.sidebar.date_input("End Year", value=pd.to_datetime(df["Colllection Date"]).max().date())
-
-        # Month filter
-        st.sidebar.markdown("### 🗓️ Filter by Month")
-        month_option = st.sidebar.selectbox(
-            ##,
-            ["All", "1 Month", "3 Moths", "6 Months", "Custom (From-To)"]
-        )
-
-        custom_month_start, custom_month_end = None, None
-        if month_option == "Custom (From-To)":
-            custom_month_start = st.sidebar.date_input("Start Month", value=pd.to_datetime(df["Collection Date"]).min().date())
-            custom_month_end = st.sidebar.date_input("End Month", value=pd.to_datetime(df["Collection Date"]).max().date())
-
-        #Apply Vehicle Filter
+              
         if selected_vehicle != "All":
             filtered_df = df[df["Vehicle No"] == selected_vehicle]
         else:
             filtered_df = df.copy()
 
-        #Aplly year filter
-        if year_option == "1 Year":
-            start_date = pd.to_datetime("today") - pd.DateOffset(years=1)
-            filtered_df = filtered_df[pd.to_datetime(filtered_df["Collection Date"]) >= start_date]
-        elif year_option == "3 Years":
-            start_date = pd.to_datetime("today") - pd.DateOffset(years=3)
-            filtered_df = filtered_df[pd.to_datetime(filtered_df["Collection Date"]) >= start_date]
-        elif year_option == "Custom (From-To)" and custom_year_start and custom_year_end:
-            filtered_df = filtered_df[
-                (pd.to_datetime(filtered_df["Collection Date"]) >= pd.to_datetime(custom_year_start)) &
-                (pd.to_datetime(filtered_df["Collection Date"]) <= pd.to_datetime(custom_year_end))
-            ]
-            
-        #Apply month filter
-        if month_option == "1 Month":
-            start_date = pd.to_datetime("today") - pd.DateOffset(months=1)
-            filtered_df = filtered_df[pd.to_datetime(filtered_df["Collection Date"]) >= start_date]
-        elif month_option == "3 Months":
-            start_date = pd.to_datetime("today") - pd.DateOffset(months=3)
-            filtered_df = filtered_df[pd.to_datetime(filtered_df["Collection Date"]) >= start_date]
-        elif month_option == "6 Months":
-            start_date = pd.to_datetime("today") - pd.DateOffset(months=6)
-            filtered_df = filtered_df[pd.to_datetime(filtered_df["Collection Date"]) >= start_date]
-        elif month_option == "Custom (From-To)" and custom_month_start and custom_month_end:
-            filtered_df = filtered_df[
-                (pd.to_datetime(filtered_df["Collection Date"]) >= pd.to_datetime(custom_month_start)) &
-                (pd.to_datetime(filtered_df["Collection Date"]) <= pd.to_datetime(custom_month_end))
-            ]
-        
-        #if selected_vehicle != "All":
-        #    filtered_df = df[df["Vehicle No"] == selected_vehicle]
-        #else:
-        #    filtered_df = df.copy()
-
         # Total collection for selected vehicle
         selected_total = filtered_df["Amount"].sum()
 
-        st.sidebar.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
+        st.sidebar.info(f"💰 **TTTotal Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
 
         
-    ## edit by ayush ends ################
+    ## edit by ayush ends 
     
         st.markdown("### 📈 Collection Trend")
     
@@ -1015,12 +955,6 @@ else:
         
         # Rerender chart with filtered data
         st.line_chart(filtered_pivot)
-
-        ##edit by ayush starts
-
-
-
-        ##edit by ayush ends
 
         st.markdown("---")
 
