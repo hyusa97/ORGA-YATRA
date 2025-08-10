@@ -894,6 +894,7 @@ else:
         st.markdown("---")
     
     # edit by ayush starts
+        st.sidebar.markdown("---")
         # Vehicle filter
         st.sidebar.markdown("### 🚗 Filter by Vehicle")
         #vehicle_list = ["All"] + sorted(df["Vehicle No"].unique())
@@ -932,12 +933,12 @@ else:
 
         #Aplly year filter
         if year_option == "1 Year":
-            start_date = pd.to_datetime("today") - pd.dateoffset(years=1)
+            start_date = pd.to_datetime("today") - pd.DateOffset(years=1)
             filtered_df = filtered_df[pd.to_datetime(filtered_df["Collection Date"]) >= start_date]
         elif year_option == "3 Years":
             start_date = pd.to_datetime("today") - pd.DateOffset(years=3)
             filtered_df = filtered_df[pd.to_datetime(filtered_df["Collection Date"]) >= start_date]
-        elif year_option == "Custom (From–To)" and custom_year_start and custom_year_end:
+        elif year_option == "Custom (From-To)" and custom_year_start and custom_year_end:
             filtered_df = filtered_df[
                 (pd.to_datetime(filtered_df["Collection Date"]) >= pd.to_datetime(custom_year_start)) &
                 (pd.to_datetime(filtered_df["Collection Date"]) <= pd.to_datetime(custom_year_end))
@@ -953,7 +954,7 @@ else:
         elif month_option == "6 Months":
             start_date = pd.to_datetime("today") - pd.DateOffset(months=6)
             filtered_df = filtered_df[pd.to_datetime(filtered_df["Collection Date"]) >= start_date]
-        elif month_option == "Custom (From–To)" and custom_month_start and custom_month_end:
+        elif month_option == "Custom (From-To)" and custom_month_start and custom_month_end:
             filtered_df = filtered_df[
                 (pd.to_datetime(filtered_df["Collection Date"]) >= pd.to_datetime(custom_month_start)) &
                 (pd.to_datetime(filtered_df["Collection Date"]) <= pd.to_datetime(custom_month_end))
