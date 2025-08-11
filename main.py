@@ -262,7 +262,7 @@ else:
     govind_total_credit = govind_collection_credit + govind_settlement_credit + govind_investment_credit
 
     govind_expense_debit = govind_df[govind_df['Transaction Type'] == 'Expence_Debit']['Amount'].sum()
-    govind_settlement_debit = govind_df[govind_df['Transaction Type'] == 'Settlement_Debit']['Amount'].sum()
+    govind_settlement_debit = govind_df[govind_df['Transaction Type'] == 'Settelment_Debit']['Amount'].sum()
     govind_total_debit = govind_expense_debit + govind_settlement_debit
 
     # Kumar Gaurav
@@ -272,7 +272,7 @@ else:
     gaurav_total_credit = gaurav_collection_credit + gaurav_settlement_credit + gaurav_investment_credit
 
     gaurav_expense_debit = gaurav_df[gaurav_df['Transaction Type'] == 'Expence_Debit']['Amount'].sum()
-    gaurav_settlement_debit = gaurav_df[gaurav_df['Transaction Type'] == 'Settlement_Debit']['Amount'].sum()
+    gaurav_settlement_debit = gaurav_df[gaurav_df['Transaction Type'] == 'Settelment_Debit']['Amount'].sum()
     gaurav_total_debit = gaurav_expense_debit + gaurav_settlement_debit
 
     #------------Bank Calculation End-----------------
