@@ -893,7 +893,7 @@ else:
     
         st.markdown("---")
     
-    # edit by ayush
+    # edit by ayush starts
         # Vehicle filter
         st.sidebar.markdown("### 🚗 Filter by Vehicle")
         #vehicle_list = ["All"] + sorted(df["Vehicle No"].unique())
@@ -948,22 +948,9 @@ else:
         # Total collection for selected vehicle
         #selected_total = filtered_df["Amount"].sum()
         #st.sidebar.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
-        collection_amount = filtered_df["Amount"].sum()
-        selected_vehicle_display= selected_vehicle if selected_vehicle != "All" else "All Vehicles"
-
-        monthly_totals = filtered_df.groupby(pd.to_datetime(filtered_df["Collection Date"]).dt.to_period("M"))["Amount"].sum()
-        best_month = monthly_totals.idxmax().strftime('%B %Y') if not monthly_totals.empty else "N/A"
-        worst_month = monthly_totals.idxmin().strftime('%B %Y') if not monthly_totals.empty else "N/A"
-
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("💰 Collection Amount", f"₹{collection_amount:,.2f}")
-        col2.metric("🚐 Selected Vehicle", selected_vehicle_display)
-        col3.metric("🏆 Best Collection Month", best_month)
-        col4.metric("📉 Worst Collection Month", worst_month)
-
 
         
-    ## edit by ayush
+    ## edit by ayush ends
     
         st.markdown("### 📈 Collection Trend")
     
@@ -1007,7 +994,24 @@ else:
         
         # Rerender chart with filtered data
         st.line_chart(filtered_pivot)
+## edit by ayush starts
 
+        st.markdown("---")
+        collection_amount = filtered_df["Amount"].sum()
+        selected_vehicle_display= selected_vehicle if selected_vehicle != "All" else "All Vehicles"
+
+        monthly_totals = filtered_df.groupby(pd.to_datetime(filtered_df["Collection Date"]).dt.to_period("M"))["Amount"].sum()
+        best_month = monthly_totals.idxmax().strftime('%B %Y') if not monthly_totals.empty else "N/A"
+        worst_month = monthly_totals.idxmin().strftime('%B %Y') if not monthly_totals.empty else "N/A"
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("💰 Collection Amount", f"₹{collection_amount:,.2f}")
+        col2.metric("🚐 Selected Vehicle", selected_vehicle_display)
+        col3.metric("🏆 Best Collection Month", best_month)
+        col4.metric("📉 Worst Collection Month", worst_month)
+
+### edit by ayush ends
+        st.markdown("---")
         st.markdown("### 📄 Collection Records")
     
         # Columns to show
