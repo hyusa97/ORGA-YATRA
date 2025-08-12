@@ -502,10 +502,12 @@ else:
             )
 
         # Display pending collection data        
-        st.subheader("🕒 Pending Collection Data")
+        
         if missing_df.empty:
-            st.success("No missing entries")
+            st.write("### 🔍 Recent Collection Data:")
+            st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
         else:
+            st.subheader("🕒 Pending Collection Data")
             #missing_df.index = missing_df.index +1
             st.dataframe(missing_df, hide_index=True)
 
