@@ -324,7 +324,6 @@ else:
         total_investment = govind_total_investment + gaurav_total_investment + Investment_Credit_Bank
         total_expense = govind_total_expense + gaurav_total_expense + govind_expense_debit +gaurav_expense_debit
 
-        st.write(govind_settlement_debit)
         remaining_fund_gaurav= (gaurav_total_collection - gaurav_total_expense - gaurav_collection_credit + gaurav_settlement_debit - gaurav_settlement_credit + gaurav_total_investment)
         remaining_fund_govind= (govind_total_collection - govind_total_expense - govind_collection_credit + govind_settlement_debit - govind_settlement_credit + govind_total_investment)
         Net_balance=remaining_fund_gaurav + remaining_fund_govind + bank_balance
