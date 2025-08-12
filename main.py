@@ -332,13 +332,13 @@ else:
 
         
         col1, col2, col3, col4, col5,col6,col7 = st.columns(7)
-        col1.metric(label="💰 Total Collection", value=f"₹{total_collection:,.2f}")
-        col2.metric(label="📉 Total Expenses", value=f"₹{total_expense:,.2f}")
-        col3.metric(label="💸 Total Investment", value=f"₹{total_investment:,.2f}")
-        col4.metric(label="💵 Govind Balance", value=f"₹{remaining_fund_govind:,.2f}")
-        col5.metric(label="💵 Gaurav Balance", value=f"₹{remaining_fund_gaurav:,.2f}")
-        col6.metric(label="🏦 Bank Balance", value=f"₹{bank_balance:,.2f}")
-        col7.metric(label="🏦 Net Balance", value=f"₹{Net_balance:,.2f}")
+        col1.metric(label="💰 Total Collection", value=f"₹{total_collection:,.0f}")
+        col2.metric(label="📉 Total Expenses", value=f"₹{total_expense:,.0f}")
+        col3.metric(label="💸 Total Investment", value=f"₹{total_investment:,.0f}")
+        col4.metric(label="💵 Govind Balance", value=f"₹{remaining_fund_govind:,.0f}")
+        col5.metric(label="💵 Gaurav Balance", value=f"₹{remaining_fund_gaurav:,.0f}")
+        col6.metric(label="🏦 Bank Balance", value=f"₹{bank_balance:,.0f}")
+        col7.metric(label="🏦 Net Balance", value=f"₹{Net_balance:,.0f}")
 
 
         st.markdown("---")
@@ -346,8 +346,8 @@ else:
         st.subheader("📅 "+formatted_last_month+"   Overview")
 
         col4, col5 = st.columns(2)
-        col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.2f}")
-        col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.2f}")
+        col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.0f}")
+        col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.0f}")
 
         st.markdown("---")
         
@@ -557,15 +557,15 @@ else:
         # === UI ===
         st.subheader("📅 Monthly Breakdown")
         st.dataframe(monthly_summary.style.format({
-            "Govind Collection": "₹{:.2f}",
-            "Gaurav Collection": "₹{:.2f}",
-            "Total Collection": "₹{:.2f}",
+            "Govind Collection": "₹{:.0f}",
+            "Gaurav Collection": "₹{:.0f}",
+            "Total Collection": "₹{:.0f}",
             "Collection Change (%)": "{:+.1f}%",
-            "Govind Expense": "₹{:.2f}",
-            "Gaurav Expense": "₹{:.2f}",
-            "Total Expense": "₹{:.2f}",
+            "Govind Expense": "₹{:.0f}",
+            "Gaurav Expense": "₹{:.0f}",
+            "Total Expense": "₹{:.0f}",
             "Expense Change (%)": "{:+.1f}%",
-            "Net Balance": "₹{:.2f}"
+            "Net Balance": "₹{:.0f}"
         }), use_container_width=True)
     
         # === Charts ===
@@ -614,9 +614,9 @@ else:
         # Display Data
         st.subheader(f"📊 Top {top_n} - Grouped by {group_by}")
         st.dataframe(grouped_df.style.format({
-            "Amount": "₹{:.2f}",
+            "Amount": "₹{:.0f}",
             "Distance": "{:.0f} km",
-            "Avg Amount": "₹{:.2f}",
+            "Avg Amount": "₹{:.0f}",
             "Avg Distance": "{:.1f} km"
         }), use_container_width=True)
     
@@ -663,9 +663,9 @@ else:
         total_expense = total_manual_expense + total_bank_expense
     
         col1, col2, col3 = st.columns(3)
-        col1.metric("🧾 Manual Entry Expense (Sheet)", f"₹{total_manual_expense:,.2f}")
-        col2.metric("🏦 Bank Debits (Govind + Gaurav)", f"₹{total_bank_expense:,.2f}")
-        col3.metric("💰 Total Expense (Combined)", f"₹{total_expense:,.2f}")
+        col1.metric("🧾 Manual Entry Expense (Sheet)", f"₹{total_manual_expense:,.0f}")
+        col2.metric("🏦 Bank Debits (Govind + Gaurav)", f"₹{total_bank_expense:,.0f}")
+        col3.metric("💰 Total Expense (Combined)", f"₹{total_expense:,.0f}")
     
         st.markdown("---")
     
@@ -707,7 +707,7 @@ else:
 
         # 🔹 Total of Filtered Data
         total_filtered_expense = filtered_df["Amount Used"].sum()
-        st.metric("📌 Total Filtered Expense", f"₹{total_filtered_expense:,.2f}")
+        st.metric("📌 Total Filtered Expense", f"₹{total_filtered_expense:,.0f}")
 
 
         # ✅ Make 'Any Bill' column clickable if it has a URL
@@ -775,9 +775,9 @@ else:
         total_combined_investment = full_investment_df["Investment Amount"].sum()
     
         col1, col2, col3 = st.columns(3)
-        col1.metric("📄 From Sheet", f"₹{sheet_total_investment:,.2f}")
-        col2.metric("🏦 From Bank", f"₹{bank_investment_df['Investment Amount'].sum():,.2f}")
-        col3.metric("💰 Total Investment", f"₹{total_combined_investment:,.2f}")
+        col1.metric("📄 From Sheet", f"₹{sheet_total_investment:,.0f}")
+        col2.metric("🏦 From Bank", f"₹{bank_investment_df['Investment Amount'].sum():,.0f}")
+        col3.metric("💰 Total Investment", f"₹{total_combined_investment:,.0f}")
     
         st.markdown("---")
     
@@ -837,7 +837,7 @@ else:
     
         summary_by_investor = full_investment_df.groupby("Investor Name")["Investment Amount"].sum().reset_index()
         summary_by_investor.columns = ["Investor Name", "Total Investment (₹)"]
-        summary_by_investor["Total Investment (₹)"] = summary_by_investor["Total Investment (₹)"].apply(lambda x: f"₹{x:,.2f}")
+        summary_by_investor["Total Investment (₹)"] = summary_by_investor["Total Investment (₹)"].apply(lambda x: f"₹{x:,.0f}")
     
         st.dataframe(summary_by_investor)
         st.markdown("---")
@@ -887,7 +887,7 @@ else:
     
         # Show KPI Metrics
         col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric("💰 Total Collection", f"₹{total_collection:,.2f}")
+        col1.metric("💰 Total Collection", f"₹{total_collection:,.0f}")
         col2.metric("🚐 Total Vehicles", total_vehicles)
         col3.metric("🏆 Best Vehicle", best_vehicle)
         col4.metric("📉 Worst Vehicle", worst_vehicle)
@@ -949,7 +949,7 @@ else:
 
         # Total collection for selected vehicle
         #selected_total = filtered_df["Amount"].sum()
-        #st.sidebar.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
+        #st.sidebar.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.0f}")
 
         
     ## edit by ayush ends
@@ -1007,7 +1007,7 @@ else:
         worst_month = monthly_totals.idxmin().strftime('%B %Y') if not monthly_totals.empty else "N/A"
 
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("💰 Collection Amount", f"₹{collection_amount:,.2f}")
+        col1.metric("💰 Collection Amount", f"₹{collection_amount:,.0f}")
         col2.metric("🚐 Selected Vehicle", selected_vehicle_display)
         col3.metric("🏆 Best Collection Month", best_month)
         col4.metric("📉 Worst Collection Month", worst_month)
@@ -1106,7 +1106,7 @@ else:
     
         # 💰 Current Balance (Always from full data)
         st.subheader("💰 Current Bank Balance")
-        st.metric(label="Available Balance", value=f"₹ {balance:,.2f}", delta=f"₹ {total_credit - total_debit:,.2f}")
+        st.metric(label="Available Balance", value=f"₹ {balance:,.0f}", delta=f"₹ {total_credit - total_debit:,.0f}")
     
         # 📌 Closing Balance of Filtered Data
         st.subheader("📉 Closing Balance for Selected Period")
@@ -1115,7 +1115,7 @@ else:
         closing_credit = filtered_df.loc[credit_mask, "Amount"].sum()
         closing_debit = filtered_df.loc[debit_mask, "Amount"].sum()
         closing_balance = closing_credit - closing_debit
-        st.metric(label="Closing Balance (Filtered)", value=f"₹ {closing_balance:,.2f}")
+        st.metric(label="Closing Balance (Filtered)", value=f"₹ {closing_balance:,.0f}")
     
         # 📊 Monthly Summary (From filtered data)
         st.subheader("📊 Monthly Transaction Summary")
@@ -1135,10 +1135,10 @@ else:
         def format_amount(row):
             amt = row["Amount"]
             if "credit" in row["Transaction Type"].lower():
-                return f"+₹{amt:,.2f}"
+                return f"+₹{amt:,.0f}"
             elif "debit" in row["Transaction Type"].lower():
-                return f"-₹{amt:,.2f}"
-            return f"₹{amt:,.2f}"
+                return f"-₹{amt:,.0f}"
+            return f"₹{amt:,.0f}"
     
         display_df["Amount"] = filtered_df.apply(format_amount, axis=1)
     
