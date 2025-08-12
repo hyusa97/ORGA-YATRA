@@ -930,7 +930,7 @@ else:
         # apply year filter
         if year_option == "1 Year":
             start_date = pd.to_datetime("today") - pd.DateOffset(years=1)
-            filtered_df = filtered_df[filtered_df["Collection Data"] >= start_date]
+            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
         elif year_option == "3 Years":
             start_date = pd.to_datetime("today") - pd.DateOffset(years=3)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
