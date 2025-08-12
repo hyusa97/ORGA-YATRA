@@ -902,24 +902,22 @@ else:
     
 
 
-        # year filter
-        st.sidebar.markdown("### 📅 Filter by Year")
-        year_option = st.sidebar.selectbox(
+        # year-month filter
+        st.sidebar.markdown("### 📅 Filter by Year-Month")
+        year_month_option = st.sidebar.selectbox(
             "",
-            ["All", "1 Year", "3 Years","Custom (From-To)"]
+            ["All", "1 Month", "6 Months", "1 Year","Custom (Year & Month)"]
         )
-        ## custom
 
-        #month filter
-        st.sidebar.markdown("## 🗓️ Filter by Month")
-        month_option = st.sidebar.selectbox(
-            "",
-            ["All", "1 Month", "3 Months", "6 Months", "Custom (From-To)"]
-        )
-        ## custom
+        custom_year, custom_month = None, None
+        if year_month_option == "Custom (Year & Month)":
+            years = sorted(pd.to_datetime(df["Collection Date"]).dt.year.unique())
+            months = list(range(1,13))
+            custom_year = st.sidebar.selectbox("Select Year", years)
+            custom_month = st.sidebar.selectbox("Select Month", months, format_func=lambda x: pd.to_datetime(str(x), format='%m').strftime('%B'))
 
         # ensure date column is datetime
-        df["Collection Date"] = pd.to_datetime(df["Collection Date"], errors="coerce")
+        #df["Collection Date"] = pd.to_datetime(df["Collection Date"], errors="coerce")
 
         # apply vehicle filter
         if selected_vehicle != "All":
@@ -927,32 +925,41 @@ else:
         else:
             filtered_df = df.copy()
 
-        # apply year filter
-        if year_option == "1 Year":
+        # apply year-month filter
+        if year_month_option == "1 Month":
+            start_date = pd.to_datetime("today") - pd.DateOffset(months=1)
+            filtered_df = filtered_df[pd.to_datetime(filtered_df["Collection Date"]) >= start_date]
+        elif year_month_option == "6 Months":
+            start_date = pd.to_datetime("today") - pd.DateOffset(months=6)
+            filtered_df = filtered_df[pd.to_datetime(filtered_df["Collection Date"]) >= start_date]
+        elif year_month_option == "1 Year":
             start_date = pd.to_datetime("today") - pd.DateOffset(years=1)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-        elif year_option == "3 Years":
-            start_date = pd.to_datetime("today") - pd.DateOffset(years=3)
-            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-        #elif year_option ==
+        elif year_month_option == "Custom (Year & Month)" and custom_year and custom_month:
+            filtered_df = filtered_df[
+                (pd.to_datetime(filtered_df["Collection Date"]).dt.year == custom_year)&
+                (pd.to_datetime(filtered_df["Collection Date"]).dt.month == custom_month)
+            ]
+        
 
-        #apply month filter
-        if month_option == "1 Month":
-            start_date = pd.to_datetime("today") - pd.DateOffset(months=1)
-            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-        elif month_option == "3 Month":
-            start_date = pd.to_datetime("today") - pd.DateOffset(months=3)
-            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-        elif month_option == "6 Month":
-            start_date = pd.to_datetime("today") - pd.DateOffset(months=6)
-            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-        #elif month_option == "Custom (From-To)" and custom_month_start and custom_month_end:
 
 
 
         # Total collection for selected vehicle
-        selected_total = filtered_df["Amount"].sum()
-        st.sidebar.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
+        #selected_total = filtered_df["Amount"].sum()
+        #st.sidebar.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
+        collection_amount = filtered_df["Amount"].sum()
+        selected_vehicle_display= selected_vehicle if selected_vehicle != "All" else "All Vehicles"
+
+        monthly_totals = filtered_df.groupby(pd.to_datetime(filtered_df["Collection Date"]).dt.to_period("M"))["Amount"].sum()
+        best_month = monthly_totals.idxmax().strftime('%B %Y') if not monthly_totals.empty else "N/A"
+        worst_month = monthly_totals.idxmin().strftime('%B %Y') if not monthly_totals.empty else "N/A"
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("💰 Collection Amount", f"₹{collection_amount:,.2f}")
+        col2.metric("🚐 Selected Vehicle", selected_vehicle_display)
+        col3.metric("🏆 Best Collection Month", best_month)
+        col4.metric("📉 Worst Collection Month", worst_month)
 
 
         
