@@ -223,9 +223,13 @@ else:
     Collection_Credit_Bank=bank_df[bank_df['Transaction Type'].isin(['Collection_Credit'])]['Amount'].sum()
     Investment_Credit_Bank=bank_df[bank_df['Transaction Type'].isin(['Investment_Credit'])]['Amount'].sum()
     Payment_Credit_Bank=bank_df[bank_df['Transaction Type'].isin(['Payment_Credit'])]['Amount'].sum()
-    total_credits = Collection_Credit_Bank+Investment_Credit_Bank+Payment_Credit_Bank
+    ## by ayush
+    settlement_credit = bank_df[bank_df['Transaction Type'].isin(['Settlement_Credit'])]['Amount'].sum()
+
+    total_credits = Collection_Credit_Bank+Investment_Credit_Bank+Payment_Credit_Bank+settlement_credit
 
     Expence_Debit_Bank=bank_df[bank_df['Transaction Type'].isin(['Expence_Debit'])]['Amount'].sum()
+    
     Settlement_Debit_Bank=bank_df[bank_df['Transaction Type'].isin(['Settlement_Debit'])]['Amount'].sum()
     total_debits = Expence_Debit_Bank+Settlement_Debit_Bank
 
@@ -943,13 +947,6 @@ else:
                 (pd.to_datetime(filtered_df["Collection Date"]).dt.month == custom_month)
             ]
         
-
-
-
-
-        # Total collection for selected vehicle
-        #selected_total = filtered_df["Amount"].sum()
-        #st.sidebar.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.0f}")
 
         
     ## edit by ayush ends
