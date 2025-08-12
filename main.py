@@ -996,7 +996,7 @@ else:
         st.line_chart(filtered_pivot)
 ## edit by ayush starts
 
-        st.markdown("---")
+        
         collection_amount = filtered_df["Amount"].sum()
         selected_vehicle_display= selected_vehicle if selected_vehicle != "All" else "All Vehicles"
 
@@ -1011,7 +1011,7 @@ else:
         col4.metric("📉 Worst Collection Month", worst_month)
 
 ### edit by ayush ends
-        st.markdown("---")
+        
         st.markdown("### 📄 Collection Records")
     
         # Columns to show
