@@ -829,7 +829,7 @@ else:
         st.markdown("---")
     
         # --- 🎯 Investor Filter + Summary ---
-        st.sidebar("### 🔎 Filter Investment Records by Investor")
+        st.sidebar.markdown("### 🔎 Filter Investment Records by Investor")
     
         # Unique investor names
         investors_list = full_investment_df["Investor Name"].dropna().unique().tolist()
