@@ -229,7 +229,8 @@ else:
     Expence_Debit_Bank=bank_df[bank_df['Transaction Type'].isin(['Expence_Debit'])]['Amount'].sum()
     Settlement_Debit_Bank=bank_df[bank_df['Transaction Type'].isin(['Settlement_Debit'])]['Amount'].sum()
     total_debits = Expence_Debit_Bank+Settlement_Debit_Bank
-
+    st.write("total_credits",total_credits)
+    st.write("total_debits",total_debits)
     bank_balance = total_credits - total_debits
 
     # === Individual Summary ===
