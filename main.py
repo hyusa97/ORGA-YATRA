@@ -724,7 +724,7 @@ else:
         # ─────────────────────────────────────────────────────
         # 🔹 View Filtered Table with Clickable Links
         st.subheader("📋 Filtered Expense Table")
-        st.markdown(
+        st.dataframe(
             filtered_df.sort_values(by="Date", ascending=False).to_html(escape=False, index=False),
             unsafe_allow_html=True
         )
