@@ -929,7 +929,7 @@ else:
             #custom_month = st.sidebar.selectbox("Select Month", months, format_func=lambda x: pd.to_datetime(str(x), format='%m').strftime('%B'))
             custom_start_date = st.sidebar.selectbox("Select Start Date", start_date)
             #condition: if start_date != None then end_date > start_date (always)
-            custom_end_date = st.sidebar.selectbox("Select Start Date", end_date)
+            custom_end_date = st.sidebar.selectbox("Select End Date", end_date)
             
 
 
@@ -956,8 +956,8 @@ else:
             if (custom_end_date > custom_start_date):
             
                 filtered_df = filtered_df[
-                    (pd.to_datetime(filtered_df["Collection Date"]).dt.date == custom_start_date)&
-                    (pd.to_datetime(filtered_df["Collection Date"]).dt.date == custom_end_date)
+                    (pd.to_datetime(filtered_df["Collection Date"]).dt.date >= custom_start_date)&
+                    (pd.to_datetime(filtered_df["Collection Date"]).dt.date <= custom_end_date)
                     ]
         
 
