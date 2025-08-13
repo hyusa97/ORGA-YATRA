@@ -919,18 +919,20 @@ else:
 
 
         #custom_year, custom_month = None, None
-        start_date, end_date = None, None
+        custom_start_date, custom_end_date = None, None
         if year_month_option == "Custom (Year & Month)":
-            start_date = sorted(pd.to_datetime(df["Collection Date"]).dt.date.unique())
-            end_date = sorted(pd.to_datetime(df["Collection Date"]).dt.date.unique())
+            all_dates = sorted(pd.to_datetime(df["Collection Date"]).dt.date.unique())
+            custom_start_date = st.sidebar.selectbox("Select Start Date", all_dates, key="start_date_select")
+            possible_end_dates = [d for d in all_dates if d > custom_start_date]
             #years = sorted(pd.to_datetime(df["Collection Date"]).dt.year.unique())
             #months = list(range(1,13))
             #custom_year = st.sidebar.selectbox("Select Year", years)
             #custom_month = st.sidebar.selectbox("Select Month", months, format_func=lambda x: pd.to_datetime(str(x), format='%m').strftime('%B'))
-            custom_start_date = st.sidebar.selectbox("Select Start Date", start_date)
-            #condition: if start_date != None then end_date > start_date (always)
-            custom_end_date = st.sidebar.selectbox("Select End Date", end_date)
-            
+
+            if possible_end_dates:
+                custom_end_date = st.sidebar.selectbox("Select End Date", possible_end_dates, key="end_date_select")
+            else:
+                st.sidebar.warning("No available end dates after selected start date.")
 
 
         # ensure date column is datetime
