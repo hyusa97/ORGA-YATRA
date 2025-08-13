@@ -907,13 +907,6 @@ else:
         selected_vehicle = st.sidebar.selectbox("", ["All"] + sorted(df["Vehicle No"].unique()),key = "vehicle_select",)
     
 
-
-        # year-month filter
-        st.sidebar.markdown("### 📅 Filter by Year-Month")
-        year_month_option = st.sidebar.selectbox(
-            "",
-            ["All", "1 Month", "6 Months", "1 Year","Custom (Year & Month)"]
-        )
         # ensure date column is datetime
         df["Collection Date"] = pd.to_datetime(df["Collection Date"], dayfirst=True, errors="coerce")
         #custom date
