@@ -715,27 +715,27 @@ else:
         st.metric("📌 Total Filtered Expense", f"₹{total_filtered_expense:,.0f}")
 
 
-        # ✅ Make 'Any Bill' column clickable if it has a URL
-        filtered_df["Any Bill"] = filtered_df["Any Bill"].apply(
-            lambda x: f'<a href="{x}" target="_blank">View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
-        )
 
-    
+
         # ─────────────────────────────────────────────────────
         # 🔹 View Filtered Table with Clickable Links
         st.subheader("📋 Filtered Expense Table")
-        table_html = filtered_df.sort_values(by="Date", ascending=False).to_html(
-            escape=False, index=False)
-        st.markdown(
-            f"""
-            <div style="max-height:400px; overflow-y:auto;">
-                {table_html}
-            </div>
-            """,
-            #filtered_df.sort_values(by="Date", ascending=False).to_html(escape=False, index=False),
-            unsafe_allow_html=True
+        display_df = filtered_df.sort_values(by="Date", ascending=False).copy()
+        if "Any Bill" in display_df.columns:
+            url_mask = display_df["Any Bill"].astype(str).str.startswith("http")
+            display_df.loc[~url_mask, "Any Bill"] = None  # hide non-URLs
+
+        st.dataframe(
+            display_df,
+            use_container_width = True,
+            height = 420,
+            column_config={
+                "Any Bill": st.column_config.LinkColumn("Any Bill", display_text="View Bill"),
+                "Amount Used": st.column_config.NumberColumn("Amount Used", format="₹%d"),
+                "Date": st.column_config.DateColumn("Date", format="YYYY-MM-DD"),
+            },
+            hide_index=False
         )
-        
 
 
 
