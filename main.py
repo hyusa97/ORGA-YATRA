@@ -425,9 +425,10 @@ else:
         cur_hour = now.hour
         # If current time is after 4 PM, include today in the date range, else only till yesterday
         if cur_hour >= 16:
-            all_dates = pd.date_range(start=start_date, end=latest_date).date
+            all_dates = pd.date_range(start=start_date, end=latest_date)
         else:
-            all_dates = pd.date_range(start=start_date, end= yesterday).date
+            all_dates = pd.date_range(start=start_date, end= yesterday)
+        all_dates = [d.date() for d in all_dates.to_pydatetime()]
 
         # Determine baseline collection dates for each vehicle 
         first_dates = df.groupby('Vehicle No')['Collection Date'].min()
