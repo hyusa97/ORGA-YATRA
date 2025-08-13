@@ -829,14 +829,14 @@ else:
         st.markdown("---")
     
         # --- 🎯 Investor Filter + Summary ---
-        st.markdown("### 🔎 Filter Investment Records by Investor")
+        st.sidebar("### 🔎 Filter Investment Records by Investor")
     
         # Unique investor names
         investors_list = full_investment_df["Investor Name"].dropna().unique().tolist()
         investors_list.sort()
         investors_list.insert(0, "All")
     
-        selected_investor = st.selectbox("Select Investor", investors_list)
+        selected_investor = st.sidebar.selectbox("Select Investor", investors_list)
     
         # Filter data
         if selected_investor != "All":
