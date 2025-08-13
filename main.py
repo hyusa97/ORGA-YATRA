@@ -724,8 +724,15 @@ else:
         # ─────────────────────────────────────────────────────
         # 🔹 View Filtered Table with Clickable Links
         st.subheader("📋 Filtered Expense Table")
-        st.dataframe(
-            filtered_df.sort_values(by="Date", ascending=False).to_html(escape=False, index=False),
+        table_html = filtered_df.sort_values(by="Date", ascending=False).to_html(
+            escape=False, index=False)
+        st.markdown(
+            f"""
+            <div style="max-height:400px; overflow-y:auto;">
+                {table_html}
+            </div>
+            """,
+            #filtered_df.sort_values(by="Date", ascending=False).to_html(escape=False, index=False),
             unsafe_allow_html=True
         )
         
