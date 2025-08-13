@@ -904,7 +904,7 @@ else:
         st.sidebar.markdown("### 🚗 Filter by Vehicle")
         #vehicle_list = ["All"] + sorted(df["Vehicle No"].unique())
         #selected_vehicle = st.sidebar.selectbox("###🚗 Filter by Vehicle", vehicle_list)
-        selected_vehicle = st.sidebar.selectbox("", ["All"] + sorted(df["Vehicle No"].unique()))
+        selected_vehicle = st.sidebar.selectbox("", ["All"] + sorted(df["Vehicle No"].unique()),key = "vehicle_select",)
     
 
 
@@ -914,35 +914,46 @@ else:
             "",
             ["All", "1 Month", "6 Months", "1 Year","Custom (Year & Month)"]
         )
-
+        # ensure date column is datetime
+        df["Collection Date"] = pd.to_datetime(df["Collection Date"], dayfirst=True, errors="coerce")
         #custom date
-
+        # apply vehicle filter
+        if selected_vehicle != "All":
+            filtered_df = df[df["Vehicle No"] == selected_vehicle].copy()
+        else:
+            filtered_df = df.copy()
 
         #custom_year, custom_month = None, None
+        st.sidebar.markdown("### 📅 Filter by Year-Month")
+        year_month_option = st.sidebar.selectbox(
+            "",
+            ["All", "1 Month", "6 Months", "1 Year", "Custom (Year & Month)"],
+            key="range_select",
+        )
+
         custom_start_date, custom_end_date = None, None
         if year_month_option == "Custom (Year & Month)":
-            all_dates = sorted(pd.to_datetime(df["Collection Date"]).dt.date.unique())
-            custom_start_date = st.sidebar.selectbox("Select Start Date", all_dates, key="start_date_select")
-            possible_end_dates = [d for d in all_dates if d > custom_start_date]
+            all_dates = sorted(filtered_df["Collection Date"].dt.date.dropna().unique().tolist())
+
+            custom_start_date = st.sidebar.selectbox("Select Start Date" , [None] + all_dates,format_func=lambda d: "— Select start date —" if d is None else d.strftime("%d %b %Y"), key="start_date_select", index=0,)
+            #possible_end_dates = [d for d in all_dates if d > custom_start_date]
             #years = sorted(pd.to_datetime(df["Collection Date"]).dt.year.unique())
             #months = list(range(1,13))
             #custom_year = st.sidebar.selectbox("Select Year", years)
             #custom_month = st.sidebar.selectbox("Select Month", months, format_func=lambda x: pd.to_datetime(str(x), format='%m').strftime('%B'))
 
-            if possible_end_dates:
-                custom_end_date = st.sidebar.selectbox("Select End Date", possible_end_dates, key="end_date_select")
+            if custom_start_date is not None:
+                possible_end_dates = [d for d in all_dates if d > custom_start_date]
+                if possible_end_dates:
+                    custom_end_date = st.sidebar.selectbox(
+                        "Select End Date",
+                        possible_end_dates,
+                        format_func=lambda d: d.strftime("%d %b %Y"),
+                        key="end_date_select",
+                    )
             else:
                 st.sidebar.warning("No available end dates after selected start date.")
 
-
-        # ensure date column is datetime
-        #df["Collection Date"] = pd.to_datetime(df["Collection Date"], errors="coerce")
-
-        # apply vehicle filter
-        if selected_vehicle != "All":
-            filtered_df = df[df["Vehicle No"] == selected_vehicle]
-        else:
-            filtered_df = df.copy()
 
         # apply year-month filter
         if year_month_option == "1 Month":
@@ -954,13 +965,11 @@ else:
         elif year_month_option == "1 Year":
             start_date = pd.to_datetime("today") - pd.DateOffset(years=1)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-        elif year_month_option == "Custom (Year & Month)" and custom_start_date and custom_end_date :
-            if (custom_end_date > custom_start_date):
-            
-                filtered_df = filtered_df[
-                    (pd.to_datetime(filtered_df["Collection Date"]).dt.date >= custom_start_date)&
-                    (pd.to_datetime(filtered_df["Collection Date"]).dt.date <= custom_end_date)
-                    ]
+        elif year_month_option == "Custom (Year & Month)" and (custom_start_date is not None) and (custom_end_date is not None) :
+            filtered_df = filtered_df[
+                (pd.to_datetime(filtered_df["Collection Date"]).dt.date >= custom_start_date)&
+                (pd.to_datetime(filtered_df["Collection Date"]).dt.date <= custom_end_date)
+            ]
         
 
         
