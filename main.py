@@ -951,7 +951,7 @@ else:
                 key="start_date_picker"
             )
 
-            if isinstance(custom_start_date, date):
+            if custom_start_date:
                 custom_end_date = st.sidebar.date_input(
                     "Select End Date",
                     value=custom_start_date + pd.Timedelta(days=1),
@@ -959,8 +959,7 @@ else:
                     max_value=max_date,
                     key="end_date_picker"
                 )
-            else:
-                st.sidebar.warning("No available end dates after selected start date.")
+
 
         today = pd.Timestamp.today().normalize()
         # apply year-month filter
