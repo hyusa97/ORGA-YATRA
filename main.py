@@ -928,13 +928,13 @@ else:
         st.sidebar.markdown("### 📅 Filter by Date")
         year_month_option = st.sidebar.selectbox(
             "",
-            ["All", "1 Month", "6 Months", "1 Year", "Custom Date"],
+            ["All", "Current Month", "Last 6 Months", "Current Year", "Custom Date"],
             key="range_select",
         )
 
         custom_start_date, custom_end_date = None, None
         if year_month_option == "Custom Date":
-            min_date = date(2025, 1, 1)
+            min_date = date(2024, 1, 1)
             max_date = date.today()
             #all_dates = sorted(filtered_df["Collection Date"].dt.date.dropna().unique().tolist())
             #custom_start_date = st.sidebar.selectbox("Select Start Date" , [None] + all_dates,format_func=lambda d: "— Select start date —" if d is None else d.strftime("%d %b %Y"), key="start_date_select", index=0,)
@@ -954,8 +954,8 @@ else:
             if custom_start_date:
                 custom_end_date = st.sidebar.date_input(
                     "Select End Date",
-                    value=custom_start_date + pd.Timedelta(days=1),
-                    min_value=custom_start_date + pd.Timedelta(days=1),
+                    value=(custom_start_date + pd.Timedelta(days=1)).date(),
+                    min_value=custom_start_date + pd.Timedelta(days=1).date(),
                     max_value=max_date,
                     key="end_date_picker"
                 )
@@ -963,13 +963,13 @@ else:
 
         today = pd.Timestamp.today().normalize()
         # apply year-month filter
-        if year_month_option == "1 Month":
+        if year_month_option == "Current Month":
             start_date = today.replace(day=1)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-        elif year_month_option == "6 Months":
+        elif year_month_option == "Last 6 Months":
             start_date = (today - pd.DateOffset(months=6)).replace(day=1)
             start_date = pd.Timestamp.today().normalize() - pd.DateOffset(months=6)
-        elif year_month_option == "1 Year":
+        elif year_month_option == "Current Year":
             start_date = today.replace(month=1, day=1)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
         elif (year_month_option == "Custom Date" and isinstance(custom_start_date, date) and isinstance(custom_end_date, date)):
@@ -979,7 +979,7 @@ else:
             ]
         
 
-        
+        st.markdown("---")
     ## edit by ayush ends
     
         st.markdown("### 📈 Collection Trend")
