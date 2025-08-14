@@ -951,11 +951,12 @@ else:
                 key="start_date_picker"
             )
 
-            if custom_start_date:
+            if custom_start_date<max_date:
+                next_day = custom_start_date + timedelta(days=1)
                 custom_end_date = st.sidebar.date_input(
                     "Select End Date",
-                    value=(custom_start_date + pd.Timedelta(days=1)).date(),
-                    min_value=custom_start_date + pd.Timedelta(days=1).date(),
+                    value=next_day,
+                    min_value=next_day,
                     max_value=max_date,
                     key="end_date_picker"
                 )
@@ -979,7 +980,7 @@ else:
             ]
         
 
-        st.markdown("---")
+        
     ## edit by ayush ends
     
         st.markdown("### 📈 Collection Trend")
@@ -1037,9 +1038,8 @@ else:
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("💰 Collection Amount", f"₹{collection_amount:,.0f}")
         col2.metric("🚐 Selected Vehicle", selected_vehicle_display)
-        col3.metric("🏆 Best Collection Month", best_month)
-        col4.metric("📉 Worst Collection Month", worst_month)
 
+        st.markdown("---")
 ### edit by ayush ends
         
         st.markdown("### 📄 Collection Records")
