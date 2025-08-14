@@ -424,7 +424,7 @@ else:
         yesterday = latest_date - timedelta(days=0)
         cur_hour = now.hour
         # If current time is after 4 PM, include today in the date range, else only till yesterday
-        if cur_hour >= 16:
+        if cur_hour >= 1:
             all_dates = pd.date_range(start=start_date, end=latest_date)
         else:
             all_dates = pd.date_range(start=start_date, end= yesterday)
