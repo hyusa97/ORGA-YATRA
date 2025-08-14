@@ -951,7 +951,7 @@ else:
                 key="start_date_picker"
             )
 
-            if custom_start_date:
+            if isinstance(custom_start_date, date):
                 custom_end_date = st.sidebar.date_input(
                     "Select End Date",
                     value=custom_start_date + pd.Timedelta(days=1),
@@ -962,18 +962,18 @@ else:
             else:
                 st.sidebar.warning("No available end dates after selected start date.")
 
-
+        today = pd.Timestamp.today().normalize()
         # apply year-month filter
         if year_month_option == "1 Month":
-            start_date = pd.Timestamp.today().normalize() - pd.DateOffset(months=1)
+            start_date = today.replace(day=1)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
         elif year_month_option == "6 Months":
-            start_date = pd.to_datetime("today") - pd.DateOffset(months=6)
+            start_date = (today - pd.DateOffset(months=6)).replace(day=1)
             start_date = pd.Timestamp.today().normalize() - pd.DateOffset(months=6)
         elif year_month_option == "1 Year":
-            start_date = pd.Timestamp.today().normalize() - pd.DateOffset(years=1)
+            start_date = today.replace(month=1, day=1)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-        elif (year_month_option == "Custom Date" and custom_start_date and custom_end_date):
+        elif (year_month_option == "Custom Date" and isinstance(custom_start_date, date) and isinstance(custom_end_date, date)):
             filtered_df = filtered_df[
                 (filtered_df["Collection Date"].dt.date >= custom_start_date)&
                 (filtered_df["Collection Date"].dt.date <= custom_end_date)
