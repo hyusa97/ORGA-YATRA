@@ -1191,11 +1191,6 @@ else:
     
         display_df = filtered_df[["Date", "Transaction By", "Transaction Type", "Reason", "Amount", "Bill"]].copy()
 
-        #tt = display_df["Transaction Type"].str.lower().fillna("")
-        #amts= pd.to_numeric(display_df["Amount"], errors = "coerce").fillna(0)
-
-        #plus_mask = tt.str.contains("credit", na=False)
-        #minus_mask = tt.str.contains("debit", na=False)
 
         #def format_amount(row):
         #    amt = row["Amount"]
@@ -1205,15 +1200,6 @@ else:
         #        return f"-₹{amt:,.0f}"
         #    return f"₹{amt:,.0f}"
         #display_df["Amount"] = filtered_df.apply(format_amount, axis=1)
-
-        #formatted_amount = np.where(
-        #    plus_mask, "+₹" + amts.map(lambda x: f"{x:,.0f}"),
-        #    np.where(
-        #        minus_mask, "-₹" + amts.map(lambda x: f"{x:,.0f}"),
-        #        "₹" + amts.map(lambda x: f"{x:,.0f}")
-        #    )
-        #)
-        #display_df["Amount"] = formatted_amount
 
         def format_amount(row):
             amt = pd.to_numeric(row.get("Amount", 0), errors="coerce")
@@ -1227,10 +1213,6 @@ else:
             return f"₹{amt:,.0f}"
         
     
-        # ✅ Make Bill column clickable if it has a URL
-        #display_df["Bill"] = display_df["Bill"].apply(
-        #    lambda x: f'<a href="{x}" target="_blank">View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
-        #)
 
         if not display_df.empty:
             display_df["Amount"] = display_df.apply(format_amount, axis=1)
@@ -1253,9 +1235,6 @@ else:
         styled = display_df[["Date", "Transaction By", "Transaction Type", "Reason", "Amount", "Bill"]].sort_values(by="Date", ascending=False)
         styled_df = styled.style.applymap(color_amount, subset=["Amount"])
 
-        #styled_df = styled.style.map(lambda v: "color: green" if isinstance(v, str) and v.startswith("+")
-        #                             else ("color: red" if isinstance(v, str) and v.startswith("-") else ""),
-        #                             subset=["Amount"])
     
         # 💡 Full Width Styling for Table
         st.markdown(
