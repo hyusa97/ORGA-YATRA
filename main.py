@@ -1146,6 +1146,7 @@ else:
                 )
         today = pd.Timestamp.today().normalize()
 
+        filtered_df = bank_df.copy()
 
         if filter_option == "All":
             filtered_df = bank_df
