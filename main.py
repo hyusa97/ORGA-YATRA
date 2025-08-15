@@ -1122,6 +1122,7 @@ else:
         st.sidebar.header("📅 Filter Transactions")
     
     ## edit by ayush
+        filtered_df = bank_df.copy()
         filter_option = st.sidebar.selectbox("Choose filter type:", ["All", "Last 3 Months", "Select Date"],key="range_select",)
 
         start_date, end_date = None, None
