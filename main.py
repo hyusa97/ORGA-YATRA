@@ -1111,8 +1111,8 @@ else:
         full_df = bank_df.copy()
     
         # Total balance from full data (not filtered)
-        credit_mask_full = full_df["Transaction Type"].str.lower().str.contains("credit")
-        debit_mask_full = full_df["Transaction Type"].str.lower().str.contains("debit")
+        credit_mask_full = full_df["Transaction Type"].str.lower().str.contains("credit", na=False)
+        debit_mask_full = full_df["Transaction Type"].str.lower().str.contains("debit", na=False)
     
         total_credit = full_df.loc[credit_mask_full, "Amount"].sum()
         total_debit = full_df.loc[debit_mask_full, "Amount"].sum()
@@ -1169,8 +1169,8 @@ else:
     
         # 📌 Closing Balance of Filtered Data
         st.subheader("📉 Closing Balance for Selected Period")
-        credit_mask = filtered_df["Transaction Type"].str.lower().str.contains("credit")
-        debit_mask = filtered_df["Transaction Type"].str.lower().str.contains("debit")
+        credit_mask = filtered_df["Transaction Type"].str.lower().str.contains("credit", na=False)
+        debit_mask = filtered_df["Transaction Type"].str.lower().str.contains("debit", na=False)
         closing_credit = filtered_df.loc[credit_mask, "Amount"].sum()
         closing_debit = filtered_df.loc[debit_mask, "Amount"].sum()
         closing_balance = closing_credit - closing_debit
@@ -1190,16 +1190,30 @@ else:
         st.subheader("📋 Full Bank Transaction Log")
     
         display_df = filtered_df[["Date", "Transaction By", "Transaction Type", "Reason", "Amount", "Bill"]].copy()
-    
-        def format_amount(row):
-            amt = row["Amount"]
-            if "credit" in row["Transaction Type"].lower():
-                return f"+₹{amt:,.0f}"
-            elif "debit" in row["Transaction Type"].lower():
-                return f"-₹{amt:,.0f}"
-            return f"₹{amt:,.0f}"
-    
-        display_df["Amount"] = filtered_df.apply(format_amount, axis=1)
+
+        tt = display_df["Transaction Type"].str.lower().fillna("")
+        amts= pd.to_numeric(display_df["Amount"], errors = "coerce").fillna(0)
+
+        plus_mask = tt.str.contains("credit", na=False)
+        minus_mask = tt.str.contains("debit", na=False)
+
+        #def format_amount(row):
+        #    amt = row["Amount"]
+        #    if "credit" in row["Transaction Type"].lower():
+        #        return f"+₹{amt:,.0f}"
+        #    elif "debit" in row["Transaction Type"].lower():
+        #        return f"-₹{amt:,.0f}"
+        #    return f"₹{amt:,.0f}"
+        #display_df["Amount"] = filtered_df.apply(format_amount, axis=1)
+
+        formatted_amount = np.where(
+            plus_mask, "+₹" + amts.map(lambda x: f"{x:,.0f}"),
+            np.where(
+                minus_mask, "-₹" + amts.map(lambda x: f"{x:,.0f}"),
+                "₹" + amts.map(lambda x: f"{x:,.0f}")
+            )
+        )
+        display_df["Amount"] = formatted_amount
     
         # ✅ Make Bill column clickable if it has a URL
         display_df["Bill"] = display_df["Bill"].apply(
@@ -1215,7 +1229,11 @@ else:
             return ""
     
         styled = display_df[["Date", "Transaction By", "Transaction Type", "Reason", "Amount", "Bill"]].sort_values(by="Date", ascending=False)
-        styled_df = styled.style.applymap(color_amount, subset=["Amount"])
+        #styled_df = styled.style.applymap(color_amount, subset=["Amount"])
+
+        styled_df = styled.style.map(lambda v: "color: green" if isinstance(v, str) and v.startswith("+")
+                                     else ("color: red" if isinstance(v, str) and v.startswith("-") else ""),
+                                     subset=["Amount"])
     
         # 💡 Full Width Styling for Table
         st.markdown(
