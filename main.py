@@ -1102,7 +1102,7 @@ else:
             )
     
         # Ensure 'Date' is datetime
-        bank_df["Date"] = pd.to_datetime(bank_df["Date"], dayfirst=True)
+        bank_df["Date"] = pd.to_datetime(bank_df["Date"], dayfirst=True, errors="coerce")
         bank_df["Transaction Type"] = bank_df["Transaction Type"].str.strip()
         bank_df["Month"] = bank_df["Date"].dt.strftime("%B")
         bank_df["Year"] = bank_df["Date"].dt.year
@@ -1121,18 +1121,46 @@ else:
         # 📌 Sidebar Filters
         st.sidebar.header("📅 Filter Transactions")
     
-        filter_option = st.sidebar.selectbox("Choose filter type:", ["All", "Last 3 Months", "Select Month & Year"])
-    
+    ## edit by ayush
+        filter_option = st.sidebar.selectbox("Choose filter type:", ["All", "Last 3 Months", "Select Date"],key="range_select",)
+
+        start_date, end_date = None, None
+        if filter_option == "Select Date":
+            min_d= date(2025, 1, 1)
+            max_d= date.today()
+            start_date= st.sidebar.date_input(
+                "Select Start Date",
+                val = date.today(),
+                min_val= min_d,
+                max_val= max_d,
+                key="start_date_picker"
+            )
+            if start_date < max_d:
+                nx_day= start_date + timedelta(days=1)
+                end_date = st.sidebar.date_input(
+                    "Select End Date",
+                    val=nx_day,
+                    min_val=nx_day,
+                    max_val=max_d,
+                    key="end_date_picker"
+                )
+        today = pd.Timestamp.today().normalize()
+
+
         if filter_option == "All":
             filtered_df = bank_df
         elif filter_option == "Last 3 Months":
             last_3_months = pd.Timestamp.today() - pd.DateOffset(months=3)
             filtered_df = bank_df[bank_df["Date"] >= last_3_months]
-        elif filter_option == "Select Month & Year":
-            selected_year = st.sidebar.selectbox("Year", sorted(bank_df["Year"].unique(), reverse=True))
-            selected_month = st.sidebar.selectbox("Month", sorted(bank_df["Month"].unique(), key=lambda x: pd.to_datetime(x, format="%B").month))
-            filtered_df = bank_df[(bank_df["Year"] == selected_year) & (bank_df["Month"] == selected_month)]
-    
+        elif filter_option == "Select Date" and isinstance(start_date, date) and isinstance(end_date, date):
+            #selected_year = st.sidebar.selectbox("Year", sorted(bank_df["Year"].unique(), reverse=True))
+            #selected_month = st.sidebar.selectbox("Month", sorted(bank_df["Month"].unique(), key=lambda x: pd.to_datetime(x, format="%B").month))
+            filtered_df = bank_df[
+                (bank_df["Date"].dt.date >= start_date) &
+                (bank_df["Date"].dt.date <= end_date)
+            ]
+    ## edit by ayush
+
         # 💰 Current Balance (Always from full data)
         st.subheader("💰 Current Bank Balance")
         st.metric(label="Available Balance", value=f"₹ {balance:,.0f}", delta=f"₹ {total_credit - total_debit:,.0f}")
