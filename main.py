@@ -223,10 +223,13 @@ else:
     Collection_Credit_Bank=bank_df[bank_df['Transaction Type'].isin(['Collection_Credit'])]['Amount'].sum()
     Investment_Credit_Bank=bank_df[bank_df['Transaction Type'].isin(['Investment_Credit'])]['Amount'].sum()
     Payment_Credit_Bank=bank_df[bank_df['Transaction Type'].isin(['Payment_Credit'])]['Amount'].sum()
-    settlement_credit =bank_df[bank_df['Transaction Type'].isin(['Settlement_Credit'])]['Amount'].sum()
+    ## by ayush
+    settlement_credit = bank_df[bank_df['Transaction Type'].isin(['Settlement_Credit'])]['Amount'].sum()
+
     total_credits = Collection_Credit_Bank+Investment_Credit_Bank+Payment_Credit_Bank+settlement_credit
 
     Expence_Debit_Bank=bank_df[bank_df['Transaction Type'].isin(['Expence_Debit'])]['Amount'].sum()
+    
     Settlement_Debit_Bank=bank_df[bank_df['Transaction Type'].isin(['Settlement_Debit'])]['Amount'].sum()
     total_debits = Expence_Debit_Bank+Settlement_Debit_Bank
 
@@ -333,13 +336,13 @@ else:
 
         
         col1, col2, col3, col4, col5,col6,col7 = st.columns(7)
-        col1.metric(label="💰 Total Collection", value=f"₹{total_collection:,.2f}")
-        col2.metric(label="📉 Total Expenses", value=f"₹{total_expense:,.2f}")
-        col3.metric(label="💸 Total Investment", value=f"₹{total_investment:,.2f}")
-        col4.metric(label="💵 Govind Balance", value=f"₹{remaining_fund_govind:,.2f}")
-        col5.metric(label="💵 Gaurav Balance", value=f"₹{remaining_fund_gaurav:,.2f}")
-        col6.metric(label="🏦 Bank Balance", value=f"₹{bank_balance:,.2f}")
-        col7.metric(label="🏦 Net Balance", value=f"₹{Net_balance:,.2f}")
+        col1.metric(label="💰 Total Collection", value=f"₹{total_collection:,.0f}")
+        col2.metric(label="📉 Total Expenses", value=f"₹{total_expense:,.0f}")
+        col3.metric(label="💸 Total Investment", value=f"₹{total_investment:,.0f}")
+        col4.metric(label="💵 Govind Balance", value=f"₹{remaining_fund_govind:,.0f}")
+        col5.metric(label="💵 Gaurav Balance", value=f"₹{remaining_fund_gaurav:,.0f}")
+        col6.metric(label="🏦 Bank Balance", value=f"₹{bank_balance:,.0f}")
+        col7.metric(label="🏦 Net Balance", value=f"₹{Net_balance:,.0f}")
 
 
         st.markdown("---")
@@ -347,8 +350,8 @@ else:
         st.subheader("📅 "+formatted_last_month+"   Overview")
 
         col4, col5 = st.columns(2)
-        col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.2f}")
-        col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.2f}")
+        col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.0f}")
+        col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.0f}")
 
         st.markdown("---")
         
@@ -422,9 +425,10 @@ else:
         cur_hour = now.hour
         # If current time is after 4 PM, include today in the date range, else only till yesterday
         if cur_hour >= 16:
-            all_dates = pd.date_range(start=start_date, end=latest_date).date
+            all_dates = pd.date_range(start=start_date, end=latest_date)
         else:
-            all_dates = pd.date_range(start=start_date, end= yesterday).date
+            all_dates = pd.date_range(start=start_date, end= yesterday)
+        all_dates = [d.date() for d in all_dates.to_pydatetime()]
 
         # Determine baseline collection dates for each vehicle 
         first_dates = df.groupby('Vehicle No')['Collection Date'].min()
@@ -503,14 +507,16 @@ else:
             )
 
         # Display pending collection data        
-        st.subheader("🕒 Pending Collection Data")
+        
         if missing_df.empty:
-            st.success("No missing entries")
+            st.write("### 🔍 Recent Collection Data:")
+            st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
         else:
+            st.subheader("🕒 Pending Collection Data")
             #missing_df.index = missing_df.index +1
             st.dataframe(missing_df, hide_index=True)
 
-        ## changes by ayush end here ##
+        ## changes by ayush end here ##############################
 
     elif page == "Monthly Summary":
         st.title("📊 Monthly Summary Report")
@@ -556,15 +562,15 @@ else:
         # === UI ===
         st.subheader("📅 Monthly Breakdown")
         st.dataframe(monthly_summary.style.format({
-            "Govind Collection": "₹{:.2f}",
-            "Gaurav Collection": "₹{:.2f}",
-            "Total Collection": "₹{:.2f}",
+            "Govind Collection": "₹{:.0f}",
+            "Gaurav Collection": "₹{:.0f}",
+            "Total Collection": "₹{:.0f}",
             "Collection Change (%)": "{:+.1f}%",
-            "Govind Expense": "₹{:.2f}",
-            "Gaurav Expense": "₹{:.2f}",
-            "Total Expense": "₹{:.2f}",
+            "Govind Expense": "₹{:.0f}",
+            "Gaurav Expense": "₹{:.0f}",
+            "Total Expense": "₹{:.0f}",
             "Expense Change (%)": "{:+.1f}%",
-            "Net Balance": "₹{:.2f}"
+            "Net Balance": "₹{:.0f}"
         }), use_container_width=True)
     
         # === Charts ===
@@ -613,9 +619,9 @@ else:
         # Display Data
         st.subheader(f"📊 Top {top_n} - Grouped by {group_by}")
         st.dataframe(grouped_df.style.format({
-            "Amount": "₹{:.2f}",
+            "Amount": "₹{:.0f}",
             "Distance": "{:.0f} km",
-            "Avg Amount": "₹{:.2f}",
+            "Avg Amount": "₹{:.0f}",
             "Avg Distance": "{:.1f} km"
         }), use_container_width=True)
     
@@ -662,9 +668,9 @@ else:
         total_expense = total_manual_expense + total_bank_expense
     
         col1, col2, col3 = st.columns(3)
-        col1.metric("🧾 Manual Entry Expense (Sheet)", f"₹{total_manual_expense:,.2f}")
-        col2.metric("🏦 Bank Debits (Govind + Gaurav)", f"₹{total_bank_expense:,.2f}")
-        col3.metric("💰 Total Expense (Combined)", f"₹{total_expense:,.2f}")
+        col1.metric("🧾 Manual Entry Expense (Sheet)", f"₹{total_manual_expense:,.0f}")
+        col2.metric("🏦 Bank Debits (Govind + Gaurav)", f"₹{total_bank_expense:,.0f}")
+        col3.metric("💰 Total Expense (Combined)", f"₹{total_expense:,.0f}")
     
         st.markdown("---")
     
@@ -673,13 +679,63 @@ else:
         st.sidebar.markdown("### 🔍 Filter")
         expense_by_options = ["All"] + sorted(expense_df["Expense By"].dropna().unique().tolist())
         selected_expense_by = st.sidebar.selectbox("Expense By", expense_by_options)
+        # ─────────────────────────────────────────────────────
+        #edit by ayush
+        st.sidebar.markdown("**📅 Filter By Date**")
+
+        year_month_option = st.sidebar.selectbox(
+            "",
+            ["All", "Current Month", "Last 6 Months", "Current Year", "Custom Date"],
+            key="exp_range_select",
+        )
+
+        custom_start_date, custom_end_date = None, None
+        if year_month_option == "Custom Date":
+            min_date = date(2024, 1, 1)
+            max_date = date.today()
+
+            custom_start_date = st.sidebar.date_input(
+                "Select Start Date",
+                value=date.today(),
+                min_value=min_date,
+                max_value=max_date,
+                key="exp_start_date_picker"
+            )
+
+            if custom_start_date < max_date:
+                next_day = custom_start_date + timedelta(days=1)
+                custom_end_date = st.sidebar.date_input(
+                    "Select End Date",
+                    value=next_day,
+                    min_value=next_day,
+                    max_value=max_date,
+                    key="exp_end_date_picker"
+                )
+
+        today = pd.Timestamp.today().normalize()
+
     
         # ─────────────────────────────────────────────────────
-        # 🔹 Apply Filter
+        # 🔹 Apply expense by Filter
         if selected_expense_by == "All":
             filtered_df = expense_df.copy()
         else:
             filtered_df = expense_df[expense_df["Expense By"] == selected_expense_by]
+
+        #apply date filter
+        if year_month_option == "Current Month":
+            start_date = today.replace(day=1)
+            filtered_df = filtered_df[filtered_df["Date"] >= start_date]
+        elif year_month_option == "Last 6 Months":
+            start_date = today - pd.DateOffset(months=6)
+            filtered_df = filtered_df[filtered_df["Date"] >= start_date]
+        elif year_month_option == "Current Year":
+            start_date = today.replace(month=1, day=1)
+            filtered_df = filtered_df[filtered_df["Date"] >= start_date]
+        elif (year_month_option == "Custom Date" and isinstance(custom_start_date, date) and isinstance(custom_end_date, date)):
+            filtered_df = filtered_df[
+                (filtered_df["Date"].dt.date >= custom_start_date) & (filtered_df["Date"].dt.date <= custom_end_date)]
+
     
         # ─────────────────────────────────────────────────────
         # 🔹 Month-on-Month Summary (Last 12 Months)
@@ -706,23 +762,30 @@ else:
 
         # 🔹 Total of Filtered Data
         total_filtered_expense = filtered_df["Amount Used"].sum()
-        st.metric("📌 Total Filtered Expense", f"₹{total_filtered_expense:,.2f}")
+        st.metric("📌 Total Filtered Expense", f"₹{total_filtered_expense:,.0f}")
 
 
-        # ✅ Make 'Any Bill' column clickable if it has a URL
-        filtered_df["Any Bill"] = filtered_df["Any Bill"].apply(
-            lambda x: f'<a href="{x}" target="_blank">View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
-        )
 
-    
+
         # ─────────────────────────────────────────────────────
         # 🔹 View Filtered Table with Clickable Links
         st.subheader("📋 Filtered Expense Table")
-        st.markdown(
-            filtered_df.sort_values(by="Date", ascending=False).to_html(escape=False, index=False),
-            unsafe_allow_html=True
+        display_df = filtered_df.sort_values(by="Date", ascending=False).copy()
+        if "Any Bill" in display_df.columns:
+            url_mask = display_df["Any Bill"].astype(str).str.startswith("http")
+            display_df.loc[~url_mask, "Any Bill"] = None  # hide non-URLs
+
+        st.dataframe(
+            display_df,
+            use_container_width = True,
+            height = 420,
+            column_config={
+                "Any Bill": st.column_config.LinkColumn("Any Bill", display_text="View Bill"),
+                "Amount Used": st.column_config.NumberColumn("Amount Used", format="₹%d"),
+                "Date": st.column_config.DateColumn("Date", format="YYYY-MM-DD"),
+            },
+            hide_index=False
         )
-        
 
 
 
@@ -774,9 +837,9 @@ else:
         total_combined_investment = full_investment_df["Investment Amount"].sum()
     
         col1, col2, col3 = st.columns(3)
-        col1.metric("📄 From Sheet", f"₹{sheet_total_investment:,.2f}")
-        col2.metric("🏦 From Bank", f"₹{bank_investment_df['Investment Amount'].sum():,.2f}")
-        col3.metric("💰 Total Investment", f"₹{total_combined_investment:,.2f}")
+        col1.metric("📄 From Sheet", f"₹{sheet_total_investment:,.0f}")
+        col2.metric("🏦 From Bank", f"₹{bank_investment_df['Investment Amount'].sum():,.0f}")
+        col3.metric("💰 Total Investment", f"₹{total_combined_investment:,.0f}")
     
         st.markdown("---")
     
@@ -816,14 +879,14 @@ else:
         st.markdown("---")
     
         # --- 🎯 Investor Filter + Summary ---
-        st.markdown("### 🔎 Filter Investment Records by Investor")
+        st.sidebar.markdown("### 🔎 Filter Investment Records by Investor")
     
         # Unique investor names
         investors_list = full_investment_df["Investor Name"].dropna().unique().tolist()
         investors_list.sort()
         investors_list.insert(0, "All")
     
-        selected_investor = st.selectbox("Select Investor", investors_list)
+        selected_investor = st.sidebar.selectbox("Select Investor", investors_list)
     
         # Filter data
         if selected_investor != "All":
@@ -836,7 +899,7 @@ else:
     
         summary_by_investor = full_investment_df.groupby("Investor Name")["Investment Amount"].sum().reset_index()
         summary_by_investor.columns = ["Investor Name", "Total Investment (₹)"]
-        summary_by_investor["Total Investment (₹)"] = summary_by_investor["Total Investment (₹)"].apply(lambda x: f"₹{x:,.2f}")
+        summary_by_investor["Total Investment (₹)"] = summary_by_investor["Total Investment (₹)"].apply(lambda x: f"₹{x:,.0f}")
     
         st.dataframe(summary_by_investor)
         st.markdown("---")
@@ -886,7 +949,7 @@ else:
     
         # Show KPI Metrics
         col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric("💰 Total Collection", f"₹{total_collection:,.2f}")
+        col1.metric("💰 Total Collection", f"₹{total_collection:,.0f}")
         col2.metric("🚐 Total Vehicles", total_vehicles)
         col3.metric("🏆 Best Vehicle", best_vehicle)
         col4.metric("📉 Worst Vehicle", worst_vehicle)
@@ -894,23 +957,81 @@ else:
     
         st.markdown("---")
     
-    # edit by ayush
+    # edit by ayush starts
         # Vehicle filter
         st.sidebar.markdown("### 🚗 Filter by Vehicle")
         #vehicle_list = ["All"] + sorted(df["Vehicle No"].unique())
         #selected_vehicle = st.sidebar.selectbox("###🚗 Filter by Vehicle", vehicle_list)
-        selected_vehicle = st.sidebar.selectbox("", ["All"] + sorted(df["Vehicle No"].unique()))
+        selected_vehicle = st.sidebar.selectbox("", ["All"] + sorted(df["Vehicle No"].unique()),key = "vehicle_select",)
     
+
+        # ensure date column is datetime
+        df["Collection Date"] = pd.to_datetime(df["Collection Date"], dayfirst=True, errors="coerce")
+        #custom date
+        # apply vehicle filter
         if selected_vehicle != "All":
-            filtered_df = df[df["Vehicle No"] == selected_vehicle]
+            filtered_df = df[df["Vehicle No"] == selected_vehicle].copy()
         else:
             filtered_df = df.copy()
 
-        # Total collection for selected vehicle
-        selected_total = filtered_df["Amount"].sum()
-        st.sidebar.info(f"💰 **Total Collection for {selected_vehicle if selected_vehicle != 'All' else 'All Vehicles'}**: ₹{selected_total:,.2f}")
+        #custom_year, custom_month = None, None
+        st.sidebar.markdown("### 📅 Filter by Date")
+        year_month_option = st.sidebar.selectbox(
+            "",
+            ["All", "Current Month", "Last 6 Months", "Current Year", "Custom Date"],
+            key="range_select",
+        )
+
+        custom_start_date, custom_end_date = None, None
+        if year_month_option == "Custom Date":
+            min_date = date(2024, 1, 1)
+            max_date = date.today()
+            #all_dates = sorted(filtered_df["Collection Date"].dt.date.dropna().unique().tolist())
+            #custom_start_date = st.sidebar.selectbox("Select Start Date" , [None] + all_dates,format_func=lambda d: "— Select start date —" if d is None else d.strftime("%d %b %Y"), key="start_date_select", index=0,)
+            #possible_end_dates = [d for d in all_dates if d > custom_start_date]
+            #years = sorted(pd.to_datetime(df["Collection Date"]).dt.year.unique())
+            #months = list(range(1,13))
+            #custom_year = st.sidebar.selectbox("Select Year", years)
+            #custom_month = st.sidebar.selectbox("Select Month", months, format_func=lambda x: pd.to_datetime(str(x), format='%m').strftime('%B'))
+            custom_start_date = st.sidebar.date_input(
+                "Select Start Date",
+                value=date.today(),
+                min_value=min_date,
+                max_value=max_date,
+                key="start_date_picker"
+            )
+
+            if custom_start_date<max_date:
+                next_day = custom_start_date + timedelta(days=1)
+                custom_end_date = st.sidebar.date_input(
+                    "Select End Date",
+                    value=next_day,
+                    min_value=next_day,
+                    max_value=max_date,
+                    key="end_date_picker"
+                )
+
+
+        today = pd.Timestamp.today().normalize()
+        # apply year-month filter
+        if year_month_option == "Current Month":
+            start_date = today.replace(day=1)
+            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
+        elif year_month_option == "Last 6 Months":
+            start_date = (today - pd.DateOffset(months=6)).replace(day=1)
+            start_date = pd.Timestamp.today().normalize() - pd.DateOffset(months=6)
+        elif year_month_option == "Current Year":
+            start_date = today.replace(month=1, day=1)
+            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
+        elif (year_month_option == "Custom Date" and isinstance(custom_start_date, date) and isinstance(custom_end_date, date)):
+            filtered_df = filtered_df[
+                (filtered_df["Collection Date"].dt.date >= custom_start_date)&
+                (filtered_df["Collection Date"].dt.date <= custom_end_date)
+            ]
         
-    ## edit by ayush
+
+        
+    ## edit by ayush ends
     
         st.markdown("### 📈 Collection Trend")
     
@@ -954,7 +1075,24 @@ else:
         
         # Rerender chart with filtered data
         st.line_chart(filtered_pivot)
+## edit by ayush starts
 
+        
+        collection_amount = filtered_df["Amount"].sum()
+        selected_vehicle_display= selected_vehicle if selected_vehicle != "All" else "All Vehicles"
+
+        monthly_totals = filtered_df.groupby(pd.to_datetime(filtered_df["Collection Date"]).dt.to_period("M"))["Amount"].sum()
+        best_month = monthly_totals.idxmax().strftime('%B %Y') if not monthly_totals.empty else "N/A"
+        worst_month = monthly_totals.idxmin().strftime('%B %Y') if not monthly_totals.empty else "N/A"
+
+        col1, col2 = st.columns(2)
+        col1.metric("🚐 Selected Vehicle", selected_vehicle_display)
+        col2.metric("💰 Collection Amount", f"₹{collection_amount:,.0f}")
+        
+
+        st.markdown("---")
+### edit by ayush ends
+        
         st.markdown("### 📄 Collection Records")
     
         # Columns to show
@@ -1014,7 +1152,7 @@ else:
             )
     
         # Ensure 'Date' is datetime
-        bank_df["Date"] = pd.to_datetime(bank_df["Date"], dayfirst=True)
+        bank_df["Date"] = pd.to_datetime(bank_df["Date"], dayfirst=True, errors="coerce")
         bank_df["Transaction Type"] = bank_df["Transaction Type"].str.strip()
         bank_df["Month"] = bank_df["Date"].dt.strftime("%B")
         bank_df["Year"] = bank_df["Date"].dt.year
@@ -1023,8 +1161,8 @@ else:
         full_df = bank_df.copy()
     
         # Total balance from full data (not filtered)
-        credit_mask_full = full_df["Transaction Type"].str.lower().str.contains("credit")
-        debit_mask_full = full_df["Transaction Type"].str.lower().str.contains("debit")
+        credit_mask_full = full_df["Transaction Type"].str.lower().str.contains("credit", na=False)
+        debit_mask_full = full_df["Transaction Type"].str.lower().str.contains("debit", na=False)
     
         total_credit = full_df.loc[credit_mask_full, "Amount"].sum()
         total_debit = full_df.loc[debit_mask_full, "Amount"].sum()
@@ -1033,30 +1171,60 @@ else:
         # 📌 Sidebar Filters
         st.sidebar.header("📅 Filter Transactions")
     
-        filter_option = st.sidebar.selectbox("Choose filter type:", ["All", "Last 3 Months", "Select Month & Year"])
-    
+    ## edit by ayush
+        filtered_df = bank_df.copy()
+        filter_option = st.sidebar.selectbox("Choose filter type:", ["All", "Last 3 Months", "Select Date"],key="range_select",)
+
+        start_date, end_date = None, None
+        if filter_option == "Select Date":
+            min_date= date(2025, 1, 1)
+            max_date= date.today()
+            start_date= st.sidebar.date_input(
+                "Select Start Date",
+                value = date.today(),
+                min_value= min_date,
+                max_value= max_date,
+                key="start_date_picker"
+            )
+            if start_date < max_date:
+                next_day= start_date + timedelta(days=1)
+                end_date = st.sidebar.date_input(
+                    "Select End Date",
+                    value=next_day,
+                    min_value=next_day,
+                    max_value=max_date,
+                    key="end_date_picker"
+                )
+        today = pd.Timestamp.today().normalize()
+
+
         if filter_option == "All":
             filtered_df = bank_df
         elif filter_option == "Last 3 Months":
             last_3_months = pd.Timestamp.today() - pd.DateOffset(months=3)
             filtered_df = bank_df[bank_df["Date"] >= last_3_months]
-        elif filter_option == "Select Month & Year":
-            selected_year = st.sidebar.selectbox("Year", sorted(bank_df["Year"].unique(), reverse=True))
-            selected_month = st.sidebar.selectbox("Month", sorted(bank_df["Month"].unique(), key=lambda x: pd.to_datetime(x, format="%B").month))
-            filtered_df = bank_df[(bank_df["Year"] == selected_year) & (bank_df["Month"] == selected_month)]
-    
+        elif filter_option == "Select Date" and isinstance(start_date, date) and isinstance(end_date, date):
+            #selected_year = st.sidebar.selectbox("Year", sorted(bank_df["Year"].unique(), reverse=True))
+            #selected_month = st.sidebar.selectbox("Month", sorted(bank_df["Month"].unique(), key=lambda x: pd.to_datetime(x, format="%B").month))
+            date_filtered = bank_df[
+                (bank_df["Date"].dt.date >= start_date) &
+                (bank_df["Date"].dt.date <= end_date)
+            ]
+            filtered_df = date_filtered.copy()
+    ## edit by ayush
+
         # 💰 Current Balance (Always from full data)
         st.subheader("💰 Current Bank Balance")
-        st.metric(label="Available Balance", value=f"₹ {balance:,.2f}", delta=f"₹ {total_credit - total_debit:,.2f}")
+        st.metric(label="Available Balance", value=f"₹ {balance:,.0f}", delta=f"₹ {total_credit - total_debit:,.0f}")
     
         # 📌 Closing Balance of Filtered Data
         st.subheader("📉 Closing Balance for Selected Period")
-        credit_mask = filtered_df["Transaction Type"].str.lower().str.contains("credit")
-        debit_mask = filtered_df["Transaction Type"].str.lower().str.contains("debit")
+        credit_mask = filtered_df["Transaction Type"].str.lower().str.contains("credit", na=False)
+        debit_mask = filtered_df["Transaction Type"].str.lower().str.contains("debit", na=False)
         closing_credit = filtered_df.loc[credit_mask, "Amount"].sum()
         closing_debit = filtered_df.loc[debit_mask, "Amount"].sum()
         closing_balance = closing_credit - closing_debit
-        st.metric(label="Closing Balance (Filtered)", value=f"₹ {closing_balance:,.2f}")
+        st.metric(label="Closing Balance (Filtered)", value=f"₹ {closing_balance:,.0f}")
     
         # 📊 Monthly Summary (From filtered data)
         st.subheader("📊 Monthly Transaction Summary")
@@ -1072,21 +1240,39 @@ else:
         st.subheader("📋 Full Bank Transaction Log")
     
         display_df = filtered_df[["Date", "Transaction By", "Transaction Type", "Reason", "Amount", "Bill"]].copy()
-    
+
+
+        #def format_amount(row):
+        #    amt = row["Amount"]
+        #    if "credit" in row["Transaction Type"].lower():
+        #        return f"+₹{amt:,.0f}"
+        #    elif "debit" in row["Transaction Type"].lower():
+        #        return f"-₹{amt:,.0f}"
+        #    return f"₹{amt:,.0f}"
+        #display_df["Amount"] = filtered_df.apply(format_amount, axis=1)
+
         def format_amount(row):
-            amt = row["Amount"]
-            if "credit" in row["Transaction Type"].lower():
-                return f"+₹{amt:,.2f}"
-            elif "debit" in row["Transaction Type"].lower():
-                return f"-₹{amt:,.2f}"
-            return f"₹{amt:,.2f}"
+            amt = pd.to_numeric(row.get("Amount", 0), errors="coerce")
+            if pd.isna(amt):
+                amt = 0
+            t = str(row.get("Transaction Type", "")).lower()
+            if "credit" in t:
+                return f"+₹{amt:,.0f}"
+            elif "debit" in t:
+                return f"-₹{amt:,.0f}"
+            return f"₹{amt:,.0f}"
+        
     
-        display_df["Amount"] = filtered_df.apply(format_amount, axis=1)
-    
-        # ✅ Make Bill column clickable if it has a URL
-        display_df["Bill"] = display_df["Bill"].apply(
-            lambda x: f'<a href="{x}" target="_blank">View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
-        )
+
+        if not display_df.empty:
+            display_df["Amount"] = display_df.apply(format_amount, axis=1)
+        else:
+            display_df["Amount"] = pd.Series(dtype="object")
+        
+        if "Bill" in display_df.columns:
+            display_df["Bill"] = display_df["Bill"].apply(
+                lambda x: f'<a href="{x}" target="_blank">View Bill</a>' if pd.notna(x) and str(x).startswith("http") else ""
+            )
     
         def color_amount(val):
             if isinstance(val, str):
@@ -1098,6 +1284,7 @@ else:
     
         styled = display_df[["Date", "Transaction By", "Transaction Type", "Reason", "Amount", "Bill"]].sort_values(by="Date", ascending=False)
         styled_df = styled.style.applymap(color_amount, subset=["Amount"])
+
     
         # 💡 Full Width Styling for Table
         st.markdown(
