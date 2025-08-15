@@ -679,13 +679,63 @@ else:
         st.sidebar.markdown("### 🔍 Filter")
         expense_by_options = ["All"] + sorted(expense_df["Expense By"].dropna().unique().tolist())
         selected_expense_by = st.sidebar.selectbox("Expense By", expense_by_options)
+        # ─────────────────────────────────────────────────────
+        #edit by ayush
+        st.sidebar.markdown("**📅 Filter By Date**")
+
+        year_month_option = st.sidebar.selectbox(
+            "",
+            ["All", "Current Month", "Last 6 Months", "Current Year", "Custom Date"],
+            key="exp_range_select",
+        )
+
+        custom_start_date, custom_end_date = None, None
+        if year_month_option == "Custom Date":
+            min_date = date(2024, 1, 1)
+            max_date = date.today()
+
+            custom_start_date = st.sidebar.date_input(
+                "Select Start Date",
+                value=date.today(),
+                min_value=min_date,
+                max_value=max_date,
+                key="exp_start_date_picker"
+            )
+
+            if custom_start_date < max_date:
+                next_day = custom_start_date + timedelta(days=1)
+                custom_end_date = st.sidebar.date_input(
+                    "Select End Date",
+                    value=next_day,
+                    min_value=next_day,
+                    max_value=max_date,
+                    key="exp_end_date_picker"
+                )
+
+        today = pd.Timestamp.today().normalize()
+
     
         # ─────────────────────────────────────────────────────
-        # 🔹 Apply Filter
+        # 🔹 Apply expense by Filter
         if selected_expense_by == "All":
             filtered_df = expense_df.copy()
         else:
             filtered_df = expense_df[expense_df["Expense By"] == selected_expense_by]
+
+        #apply date filter
+        if year_month_option == "Current Month":
+            start_date = today.replace(day=1)
+            filtered_df = filtered_df[filtered_df["Date"] >= start_date]
+        elif year_month_option == "Last 6 Months":
+            start_date = today - pd.DateOffset(months=6)
+            filtered_df = filtered_df[filtered_df["Date"] >= start_date]
+        elif year_month_option == "Current Year":
+            start_date = today.replace(month=1, day=1)
+            filtered_df = filtered_df[filtered_df["Date"] >= start_date]
+        elif (year_month_option == "Custom Date" and isinstance(custom_start_date, date) and isinstance(custom_end_date, date)):
+            filtered_df = filtered_df[
+                (filtered_df["Date"].dt.date >= custom_start_date) & (filtered_df["Date"].dt.date <= custom_end_date)]
+
     
         # ─────────────────────────────────────────────────────
         # 🔹 Month-on-Month Summary (Last 12 Months)
