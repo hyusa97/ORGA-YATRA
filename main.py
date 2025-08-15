@@ -1126,22 +1126,22 @@ else:
 
         start_date, end_date = None, None
         if filter_option == "Select Date":
-            min_d= date(2025, 1, 1)
-            max_d= date.today()
+            min_date= date(2025, 1, 1)
+            max_date= date.today()
             start_date= st.sidebar.date_input(
                 "Select Start Date",
-                val = date.today(),
-                min_val= min_d,
-                max_val= max_d,
+                value = date.today(),
+                min_value= min_date,
+                max_value= max_date,
                 key="start_date_picker"
             )
-            if start_date < max_d:
-                nx_day= start_date + timedelta(days=1)
+            if start_date < max_date:
+                next_day= start_date + timedelta(days=1)
                 end_date = st.sidebar.date_input(
                     "Select End Date",
-                    val=nx_day,
-                    min_val=nx_day,
-                    max_val=max_d,
+                    value=next_day,
+                    min_value=next_day,
+                    max_value=max_date,
                     key="end_date_picker"
                 )
         today = pd.Timestamp.today().normalize()
