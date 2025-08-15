@@ -1146,7 +1146,6 @@ else:
                 )
         today = pd.Timestamp.today().normalize()
 
-        filtered_df = bank_df.copy()
 
         if filter_option == "All":
             filtered_df = bank_df
@@ -1156,10 +1155,11 @@ else:
         elif filter_option == "Select Date" and isinstance(start_date, date) and isinstance(end_date, date):
             #selected_year = st.sidebar.selectbox("Year", sorted(bank_df["Year"].unique(), reverse=True))
             #selected_month = st.sidebar.selectbox("Month", sorted(bank_df["Month"].unique(), key=lambda x: pd.to_datetime(x, format="%B").month))
-            filtered_df = bank_df[
+            date_filtered = bank_df[
                 (bank_df["Date"].dt.date >= start_date) &
                 (bank_df["Date"].dt.date <= end_date)
             ]
+            filtered_df = date_filtered.copy()
     ## edit by ayush
 
         # 💰 Current Balance (Always from full data)
