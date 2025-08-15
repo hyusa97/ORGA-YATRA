@@ -421,7 +421,7 @@ else:
         tz = pytz.timezone("Asia/Kolkata")
         now = datetime.now(tz)
         latest_date = date.today()
-        yesterday = latest_date - timedelta(days=0)
+        yesterday = latest_date - timedelta(days=1)
         cur_hour = now.hour
         # If current time is after 4 PM, include today in the date range, else only till yesterday
         if cur_hour >= 16:
@@ -1035,9 +1035,10 @@ else:
         best_month = monthly_totals.idxmax().strftime('%B %Y') if not monthly_totals.empty else "N/A"
         worst_month = monthly_totals.idxmin().strftime('%B %Y') if not monthly_totals.empty else "N/A"
 
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("💰 Collection Amount", f"₹{collection_amount:,.0f}")
-        col2.metric("🚐 Selected Vehicle", selected_vehicle_display)
+        col1, col2 = st.columns(2)
+        col1.metric("🚐 Selected Vehicle", selected_vehicle_display)
+        col2.metric("💰 Collection Amount", f"₹{collection_amount:,.0f}")
+        
 
         st.markdown("---")
 ### edit by ayush ends
