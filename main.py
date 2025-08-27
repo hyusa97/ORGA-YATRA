@@ -1332,7 +1332,7 @@ else:
 
         for date, day_data in perf_df.groupby("Collection Date"):
             all_vehicles = day_data["Vehicle No"].unique().tolist()
-            zero_collection_vehicles = day_data[day_data["Driver Name"].isin(["Zero Collection", "", None])]["Vehicle No"].tolist()
+            zero_collection_vehicles = day_data[day_data["Name"].isin(["Zero Collection", "", None])]["Vehicle No"].tolist()
 
             for vehicle in zero_collection_vehicles:
                 company_results.append({
