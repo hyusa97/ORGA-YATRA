@@ -1318,10 +1318,10 @@ else:
 
         perf_df= df.copy()
 
-        perf_df["Date"] = pd.to_datetime(perf_df["Date"], errors="coerce")
+        perf_df["Collection Date"] = pd.to_datetime(perf_df["Collection Date"], errors="coerce")
 
-        perf_df["Month"] = perf_df["Date"].dt.month
-        perf_df["Year"] = perf_df["Date"].dt.year
+        perf_df["Month"] = perf_df["Collection Date"].dt.month
+        perf_df["Year"] = perf_df["Collection Date"].dt.year
         selected_year = st.sidebar.selectbox("Select Year", sorted(perf_df["Year"].unique()))
         selected_month = st.sidebar.selectbox("Select Month", sorted(perf_df[perf_df["Year"] == selected_year]["Month"].unique()))
 
@@ -1330,7 +1330,7 @@ else:
         driver_results = []
         company_results = []
 
-        for date, day_data in perf_df.groupby("Date"):
+        for date, day_data in perf_df.groupby("Collection Date"):
             all_vehicles = day_data["Vehicle No"].unique().tolist()
             zero_collection_vehicles = day_data[day_data["Driver Name"].isin(["Zero Collection", "", None])]["Vehicle No"].tolist()
 
@@ -1354,48 +1354,48 @@ else:
                     vehicle = row["Vehicle No"]
                     driver_amt = row["Amount"]
 
-                if driver_amt < 300:
-                    driver_loss = 300 - driver_amt
-                    driver_loss_total += driver_loss
+                    if driver_amt < 300:
+                        driver_loss = 300 - driver_amt
+                        driver_loss_total += driver_loss
 
-                    if len(vehicles) > 1:
-                        company_loss_total += 300 * (len(vehicles) - 1)
-                        for extra_vehicle in vehicles[1:]:
-                            company_results.append({
-                                "Date": date,
-                                "Vahicle": extra_vehicle,
-                                "Loss by Company": 300
-                            })
+                        if len(vehicles) > 1:
+                            company_loss_total += 300 * (len(vehicles) - 1)
+                            for extra_vehicle in vehicles[1:]:
+                                company_results.append({
+                                    "Date": date,
+                                    "Vahicle": extra_vehicle,
+                                    "Loss by Company": 300
+                                })
 
 
-                else:
-                    driver_loss = 0
-                    if len(vehicles) > 1:
-                        company_loss_total += 300 * (len(vehicles) - 1) + (300 - driver_amt)
-                        for extra_vehicle in vehicles[1:]:
-                            company_results.append({
-                                "Date": date,
-                                "Vehicle": extra_vehicle,
-                                "Loss by Company": 300
-                            })
+                    else:
+                        driver_loss = 0
+                        if len(vehicles) > 1:
+                            company_loss_total += 300 * (len(vehicles) - 1) + (300 - driver_amt)
+                            for extra_vehicle in vehicles[1:]:
+                                company_results.append({
+                                    "Date": date,
+                                    "Vehicle": extra_vehicle,
+                                    "Loss by Company": 300
+                                })
 
+
+                    driver_results.append({
+                        "Date": date,
+                        "Driver": driver,
+                        "Vehicle": vehicle,
+                        "Loss by Driver": driver_loss,
+                        "Loss by Company": 0 if len(vehicles) == 1 else 300
+
+                    })
 
                 driver_results.append({
                     "Date": date,
                     "Driver": driver,
-                    "Vehicle": vehicle,
-                    "Loss by Driver": driver_loss,
-                    "Loss by Company": 0 if len(vehicles) == 1 else 300
-
+                    "Vehicle": ",".join(vehicles),
+                    "Loss by Driver": driver_loss_total,
+                    "Loss by Company": company_loss_total
                 })
-
-            driver_results.append({
-                "Date": date,
-                "Driver": driver,
-                "Vehicle": ",".join(vehicles),
-                "Loss by Driver": driver_loss_total,
-                "Loss by Company": company_loss_total
-            })
 
         driver_table = pd.DataFrame(driver_results)
         company_table = pd.DataFrame(company_results)
