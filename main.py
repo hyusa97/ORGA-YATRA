@@ -1344,19 +1344,23 @@ else:
             end_date = st.sidebar.date_input("End Date", today)
             start_date, end_date = pd.to_datetime(start_date), pd.to_datetime(end_date)
 
-    # ---------- Loss Engine (matches your clarified rules) ----------
+    # ---------- Loss Engine (new logic) ----------
         def evaluate_losses(dataset: pd.DataFrame, build_tables: bool = True):
             """
             Rules:
             - Zero Collection vehicles -> company loss = 300 each.
             - For each driver per date:
-                * First vehicle: driver loss = max(0, 300 - amount). (No company impact here.)
-                * Extra vehicles (2nd, 3rd, ...):
-                    - if amount < 300: company loss = 300
-                    - if amount > 300: company loss = 300 - (amount - 300)  == 600 - amount
-                    (Capped at 0 below; remove max(0, ...) if you want negative values to represent gains.)
-            - Driver table: ONE row per driver per date (first vehicle only), and ONLY if driver loss > 0.
-            - Company table: rows for Zero Collection + extra vehicles with loss > 0.
+                * total_amount = sum of all vehicles assigned to driver that day
+                * n = number of vehicles assigned
+                * If total_amount >= 300:
+                    driver_loss = 0
+                    company_loss = total_amount - (300 * n)
+                * If total_amount < 300:
+                    driver_loss = 300 - total_amount
+                    company_loss = total_amount - (300 * (n - 1))
+                * Negative company_loss means actual loss → store as positive value
+            - Driver table: one row per driver per date (only if driver_loss > 0).
+            - Company table: rows for Zero Collection + drivers with company_loss > 0.
             """
             total_driver_loss = 0.0
             total_company_loss = 0.0
@@ -1386,43 +1390,39 @@ else:
                     continue
 
                 for driver, d_data in non_zero.groupby("Name"):
-                # keep original row order (so "first vehicle" is deterministic)
-                    d_data = d_data.sort_index()
+                    total_amount = d_data["Amount"].sum()
+                    n = len(d_data)
 
-                # ---- First vehicle (driver loss only) ----
-                    first = d_data.iloc[0]
-                    first_amt = float(first["Amount"])
-                    first_vehicle = first["Vehicle No"]
-                    driver_loss = max(0, 300 - first_amt)
+                # ---- Driver loss ----
+                    if total_amount >= 300:
+                        driver_loss = 0
+                        company_loss = total_amount - (300 * n)
+                    else:
+                        driver_loss = 300 - total_amount
+                        company_loss = total_amount - (300 * (n - 1))
+
+                # Convert negative company_loss to positive (loss representation)
+                    if company_loss < 0:
+                        company_loss = abs(company_loss)
+
                     total_driver_loss += driver_loss
+                    total_company_loss += company_loss
 
-                    if build_tables and driver_loss > 0:
-                        driver_rows.append({
-                            "Date": date,
-                            "Driver": driver,
-                            "Vehicle": first_vehicle,
-                            "Loss by Driver": driver_loss
-                        })
-
-                # ---- Extra vehicles (company loss per clarified formula) ----
-                    if len(d_data) > 1:
-                        for _, extra in d_data.iloc[1:].iterrows():
-                            amt = float(extra["Amount"])
-                            if amt < 300:
-                                comp_loss = 300
-                            elif amt > 300:
-                                comp_loss = max(0, 600 - amt)  # cap at 0; remove max(...) if you want negatives
-                            else:  # amt == 300
-                                comp_loss = 0
-
-                            if comp_loss > 0:
-                                total_company_loss += comp_loss
-                                if build_tables:
-                                    company_rows.append({
-                                        "Date": date,
-                                        "Vehicle": extra["Vehicle No"],
-                                        "Loss by Company": comp_loss
-                                    })
+                    if build_tables:
+                        if driver_loss > 0:
+                            driver_rows.append({
+                                "Date": date,
+                                "Driver": driver,
+                                "Vehicle(s)": ", ".join(d_data["Vehicle No"].astype(str)),
+                                "Loss by Driver": driver_loss
+                            })
+                        if company_loss > 0:
+                            company_rows.append({
+                                "Date": date,
+                                "Driver": driver,
+                                "Vehicle(s)": ", ".join(d_data["Vehicle No"].astype(str)),
+                                "Loss by Company": company_loss
+                            })
 
             if build_tables:
                 driver_tbl = pd.DataFrame(driver_rows)
