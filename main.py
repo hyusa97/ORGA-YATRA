@@ -293,7 +293,7 @@ else:
 
     # --- DASHBOARD UI ---
     st.sidebar.header("📂 Navigation")
-    page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Investment", "Collection Data", "Bank Transaction" ])
+    page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Investment", "Collection Data", "Bank Transaction", "Performance" ])
 
     if page == "Dashboard":
         st.title("📊 VayuVolt Dashboard")
@@ -1312,6 +1312,101 @@ else:
             file_name="filtered_bank_transactions.csv",
             mime="text/csv"
         )
+
+    elif page == "Performance":
+        st.title("📉 Performance Analysis")
+
+        perf_df= df.copy()
+
+        perf_df["Date"] = pd.to_datetime(perf_df["Date"], errors="coerce")
+
+        perf_df["Month"] = perf_df["Date"].dt.month
+        perf_df["Year"] = perf_df["Date"].dt.year
+        selected_year = st.sidebar.selectbox("Select Year", sorted(perf_df["Year"].unique()))
+        selected_month = st.sidebar.selectbox("Select Month", sorted(perf_df[perf_df["Year"] == selected_year]["Month"].unique()))
+
+        perf_df = perf_df[(perf_df["Year"] == selected_year) & (perf_df["Month"] == selected_month)]
+
+        driver_results = []
+        company_results = []
+
+        for date, day_data in perf_df.groupby("Date"):
+            all_vehicles = day_data["Vehicle No"].unique().tolist()
+            zero_collection_vehicles = day_data[day_data["Driver Name"].isin(["Zero Collection", "", None])]["Vehicle No"].tolist()
+
+            for vehicle in zero_collection_vehicles:
+                company_results.append({
+                    "Date": date,
+                    "Vehicle": vehicle,
+                    "Loss by Company": 300
+
+                })
+
+            for driver, d_data in day_data.groupby("Name"):
+                if driver in ["Zero Collection", "", None]:
+                    continue
+
+                company_loss_total = 0
+                driver_loss_total = 0
+                vehicles = d_data["Vehicle No"].tolist()
+
+                for idx, row in d_data.iterrows():
+                    vehicle = row["Vehicle No"]
+                    driver_amt = row["Amount"]
+
+                if driver_amt < 300:
+                    driver_loss = 300 - driver_amt
+                    driver_loss_total += driver_loss
+
+                    if len(vehicles) > 1:
+                        company_loss_total += 300 * (len(vehicles) - 1)
+                        for extra_vehicle in vehicles[1:]:
+                            company_results.append({
+                                "Date": date,
+                                "Vahicle": extra_vehicle,
+                                "Loss by Company": 300
+                            })
+
+
+                else:
+                    driver_loss = 0
+                    if len(vehicles) > 1:
+                        company_loss_total += 300 * (len(vehicles) - 1) + (300 - driver_amt)
+                        for extra_vehicle in vehicles[1:]:
+                            company_results.append({
+                                "Date": date,
+                                "Vehicle": extra_vehicle,
+                                "Loss by Company": 300
+                            })
+
+
+                driver_results.append({
+                    "Date": date,
+                    "Driver": driver,
+                    "Vehicle": vehicle,
+                    "Loss by Driver": driver_loss,
+                    "Loss by Company": 0 if len(vehicles) == 1 else 300
+
+                })
+
+            driver_results.append({
+                "Date": date,
+                "Driver": driver,
+                "Vehicle": ",".join(vehicles),
+                "Loss by Driver": driver_loss_total,
+                "Loss by Company": company_loss_total
+            })
+
+        driver_table = pd.DataFrame(results_driver)
+        company_table = pd.DataFrame(results_company)
+
+        st.subheader("👨‍✈️ Driver Performance")
+        st.dataframe(driver_table.style.format({"Loss by Driver": "{:,.0f}", "Loss by Company": "{:,.0f}"}))
+
+        st.subheader("🏢 Company Loss Overview")
+        st.dataframe(company_table.style.format({"Loss by Company": "{:,.0f}"}))
+
+
 
     
     # 🔁 Refresh button
