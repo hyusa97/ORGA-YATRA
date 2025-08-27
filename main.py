@@ -1417,7 +1417,7 @@ else:
                         if company_loss > 0:
                             company_rows.append({
                                 "Date": date,
-                                "Driver": driver,
+                                #"Driver": driver,
                                 "Vehicle(s)": ", ".join(d_data["Vehicle No"].astype(str)),
                                 "Loss by Company": company_loss
                             })
