@@ -1397,8 +1397,8 @@ else:
                 "Loss by Company": company_loss_total
             })
 
-        driver_table = pd.DataFrame(results_driver)
-        company_table = pd.DataFrame(results_company)
+        driver_table = pd.DataFrame(driver_results)
+        company_table = pd.DataFrame(company_results)
 
         st.subheader("👨‍✈️ Driver Performance")
         st.dataframe(driver_table.style.format({"Loss by Driver": "{:,.0f}", "Loss by Company": "{:,.0f}"}))
