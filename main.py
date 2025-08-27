@@ -1318,17 +1318,22 @@ else:
     elif page == "Performance":
         st.title("📉 Performance Analysis")
 
+    # ---------- Base DF ----------
         perf_df = df.copy()
         perf_df["Collection Date"] = pd.to_datetime(perf_df["Collection Date"], errors="coerce")
+        perf_df = perf_df.dropna(subset=["Collection Date"])
+        perf_df["Amount"] = pd.to_numeric(perf_df["Amount"], errors="coerce").fillna(0)
 
-    # ==============================
-    # 📌 Date Filter
-    # ==============================
-        today = pd.Timestamp.today()
+    # ---------- Date Filter (default = current month) ----------
+        today = pd.Timestamp.today().normalize()
         start_of_month = today.replace(day=1)
         start_of_year = today.replace(month=1, day=1)
 
-        filter_type = st.sidebar.radio("Select Date Filter", ["Current Month", "Current Year", "Custom Range"], index=0)
+        filter_type = st.sidebar.radio(
+            "Select Date Filter",
+            ["Current Month", "Current Year", "Custom Range"],
+            index=0
+        )
 
         if filter_type == "Current Month":
             start_date, end_date = start_of_month, today
@@ -1339,125 +1344,126 @@ else:
             end_date = st.sidebar.date_input("End Date", today)
             start_date, end_date = pd.to_datetime(start_date), pd.to_datetime(end_date)
 
-    # ==============================
-    # 📌 Compute All-time totals (full dataset)
-    # ==============================
-        all_driver_loss = 0
-        all_company_loss = 0
-        company_results_all = []
+    # ---------- Loss Engine (matches your clarified rules) ----------
+        def evaluate_losses(dataset: pd.DataFrame, build_tables: bool = True):
+            """
+            Rules:
+            - Zero Collection vehicles -> company loss = 300 each.
+            - For each driver per date:
+                * First vehicle: driver loss = max(0, 300 - amount). (No company impact here.)
+                * Extra vehicles (2nd, 3rd, ...):
+                    - if amount < 300: company loss = 300
+                    - if amount > 300: company loss = 300 - (amount - 300)  == 600 - amount
+                    (Capped at 0 below; remove max(0, ...) if you want negative values to represent gains.)
+            - Driver table: ONE row per driver per date (first vehicle only), and ONLY if driver loss > 0.
+            - Company table: rows for Zero Collection + extra vehicles with loss > 0.
+            """
+            total_driver_loss = 0.0
+            total_company_loss = 0.0
+            driver_rows = []
+            company_rows = []
 
-        for date, day_data in perf_df.groupby("Collection Date"):
-        # Zero collection vehicles
-            zero_vehicles = day_data[day_data["Name"].isin(["Zero Collection", "", None])]["Vehicle No"].tolist()
-            for vehicle in zero_vehicles:
-                all_company_loss += 300
-                company_results_all.append({
-                    "Date": date,
-                    "Vehicle": vehicle,
-                    "Loss by Company": 300
-                })
+        # Group by date for day-wise assignment logic
+            for date, day_data in dataset.groupby("Collection Date"):
+                day_data = day_data.copy()
 
-        # Driver calculations
-            for driver, d_data in day_data.groupby("Name"):
-                if driver in ["Zero Collection", "", None]:
+            # 1) Zero collections -> company loss = 300 each
+                zero_mask = day_data["Name"].isin(["Zero Collection", "", None])
+                zero_rows = day_data[zero_mask]
+                if not zero_rows.empty:
+                    total_company_loss += 300 * len(zero_rows)
+                    if build_tables:
+                        for _, zr in zero_rows.iterrows():
+                            company_rows.append({
+                                "Date": date,
+                                "Vehicle": zr["Vehicle No"],
+                                "Loss by Company": 300
+                            })
+
+            # 2) Non-zero drivers
+                non_zero = day_data[~zero_mask]
+                if non_zero.empty:
                     continue
 
-                vehicles = d_data["Vehicle No"].tolist()
-                driver_loss_total = 0
-                extra_company_loss = 0
+                for driver, d_data in non_zero.groupby("Name"):
+                # keep original row order (so "first vehicle" is deterministic)
+                    d_data = d_data.sort_index()
 
-                for _, row in d_data.iterrows():
-                    amt = row["Amount"]
-                    driver_loss_total += max(0, 300 - amt)
+                # ---- First vehicle (driver loss only) ----
+                    first = d_data.iloc[0]
+                    first_amt = float(first["Amount"])
+                    first_vehicle = first["Vehicle No"]
+                    driver_loss = max(0, 300 - first_amt)
+                    total_driver_loss += driver_loss
 
-            # Company loss for extra vehicles
-                if len(vehicles) > 1:
-                    extra_company_loss += 300 * (len(vehicles) - 1)
+                    if build_tables and driver_loss > 0:
+                        driver_rows.append({
+                            "Date": date,
+                            "Driver": driver,
+                            "Vehicle": first_vehicle,
+                            "Loss by Driver": driver_loss
+                        })
 
-                all_driver_loss += driver_loss_total
-                all_company_loss += extra_company_loss
+                # ---- Extra vehicles (company loss per clarified formula) ----
+                    if len(d_data) > 1:
+                        for _, extra in d_data.iloc[1:].iterrows():
+                            amt = float(extra["Amount"])
+                            if amt < 300:
+                                comp_loss = 300
+                            elif amt > 300:
+                                comp_loss = max(0, 600 - amt)  # cap at 0; remove max(...) if you want negatives
+                            else:  # amt == 300
+                                comp_loss = 0
 
-            # Add extra vehicles to company table
-                for extra_vehicle in vehicles[1:]:
-                    company_results_all.append({
-                        "Date": date,
-                        "Vehicle": extra_vehicle,
-                        "Loss by Company": 300
-                    })
+                            if comp_loss > 0:
+                                total_company_loss += comp_loss
+                                if build_tables:
+                                    company_rows.append({
+                                        "Date": date,
+                                        "Vehicle": extra["Vehicle No"],
+                                        "Loss by Company": comp_loss
+                                    })
 
-    # ==============================
-    # 📌 Filtered Data
-    # ==============================
+            if build_tables:
+                driver_tbl = pd.DataFrame(driver_rows)
+                company_tbl = pd.DataFrame(company_rows)
+
+                if not driver_tbl.empty:
+                    driver_tbl = driver_tbl.sort_values("Date", ascending=False).reset_index(drop=True)
+                if not company_tbl.empty:
+                    company_tbl = company_tbl.sort_values("Date", ascending=False).reset_index(drop=True)
+
+                return total_driver_loss, total_company_loss, driver_tbl, company_tbl
+
+            return total_driver_loss, total_company_loss
+
+    # ---------- All-time totals (UNFILTERED) ----------
+        all_driver_loss, all_company_loss = evaluate_losses(perf_df, build_tables=False)
+
+    # ---------- Filtered data + tables ----------
         filtered_df = perf_df[(perf_df["Collection Date"] >= start_date) & (perf_df["Collection Date"] <= end_date)]
+        f_driver_loss, f_company_loss, driver_table, company_table = evaluate_losses(filtered_df, build_tables=True)
 
-        driver_results = []
-        company_results = []
-
-        for date, day_data in filtered_df.groupby("Collection Date"):
-        # Zero collection vehicles
-            zero_vehicles = day_data[day_data["Name"].isin(["Zero Collection", "", None])]["Vehicle No"].tolist()
-            for vehicle in zero_vehicles:
-                company_results.append({
-                    "Date": date,
-                    "Vehicle": vehicle,
-                    "Loss by Company": 300
-                })
-
-        # Driver calculations
-            for driver, d_data in day_data.groupby("Name"):
-                if driver in ["Zero Collection", "", None]:
-                    continue
-
-                vehicles = d_data["Vehicle No"].tolist()
-                driver_loss_total = 0
-
-                for _, row in d_data.iterrows():
-                    amt = row["Amount"]
-                    driver_loss_total += max(0, 300 - amt)
-
-            # Only add to company table extra vehicles
-                for extra_vehicle in vehicles[1:]:
-                    company_results.append({
-                        "Date": date,
-                        "Vehicle": extra_vehicle,
-                        "Loss by Company": 300
-                    })
-
-            # Add driver row only if driver_loss_total > 0
-                if driver_loss_total > 0:
-                    driver_results.append({
-                        "Date": date,
-                        "Driver": driver,
-                        "Vehicle": vehicles[0],  # only first vehicle
-                        "Loss by Driver": driver_loss_total
-                    })
-
-    # ==============================
-    # 📌 DataFrames
-    # ==============================
-        driver_table = pd.DataFrame(driver_results).sort_values("Date", ascending=False)
-        company_table = pd.DataFrame(company_results).sort_values("Date", ascending=False)
-
-        filtered_driver_loss = driver_table["Loss by Driver"].sum() if not driver_table.empty else 0
-        filtered_company_loss = company_table["Loss by Company"].sum() if not company_table.empty else 0
-
-    # ==============================
-    # 📌 Metrics at Top
-    # ==============================
+    # ---------- Metrics ----------
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("All-time Driver Loss", f"{all_driver_loss:,.0f}")
         col2.metric("All-time Company Loss", f"{all_company_loss:,.0f}")
-        col3.metric("Filtered Driver Loss", f"{filtered_driver_loss:,.0f}")
-        col4.metric("Filtered Company Loss", f"{filtered_company_loss:,.0f}")
+        col3.metric("Filtered Driver Loss", f"{f_driver_loss:,.0f}")
+        col4.metric("Filtered Company Loss", f"{f_company_loss:,.0f}")
 
-    # ==============================
-    # 📌 Display Tables
-    # ==============================
-        st.subheader("👨‍✈️ Driver Performance (Aggregated)")
-        st.dataframe(driver_table.style.format({"Loss by Driver": "{:,.0f}"}))
+    # ---------- Tables (filtered, date desc) ----------
+        st.subheader("👨‍✈️ Driver Performance (Filtered)")
+        if driver_table.empty:
+            st.info("No driver loss in this period.")
+        else:
+            st.dataframe(driver_table.style.format({"Loss by Driver": "{:,.0f}"}))
 
-        st.subheader("🏢 Company Loss Overview (Zero Collections + Extra Vehicles)")
-        st.dataframe(company_table.style.format({"Loss by Company": "{:,.0f}"}))
+        st.subheader("🏢 Company Loss Overview (Filtered)")
+        if company_table.empty:
+            st.info("No company loss in this period.")
+        else:
+            st.dataframe(company_table.style.format({"Loss by Company": "{:,.0f}"}))
+
 
 
 
