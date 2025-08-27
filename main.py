@@ -1346,22 +1346,7 @@ else:
 
     # ---------- Loss Engine (new logic) ----------
         def evaluate_losses(dataset: pd.DataFrame, build_tables: bool = True):
-            """
-            Rules:
-            - Zero Collection vehicles -> company loss = 300 each.
-            - For each driver per date:
-                * total_amount = sum of all vehicles assigned to driver that day
-                * n = number of vehicles assigned
-                * If total_amount >= 300:
-                    driver_loss = 0
-                    company_loss = total_amount - (300 * n)
-                * If total_amount < 300:
-                    driver_loss = 300 - total_amount
-                    company_loss = total_amount - (300 * (n - 1))
-                * Negative company_loss means actual loss → store as positive value
-            - Driver table: one row per driver per date (only if driver_loss > 0).
-            - Company table: rows for Zero Collection + drivers with company_loss > 0.
-            """
+            
             total_driver_loss = 0.0
             total_company_loss = 0.0
             driver_rows = []
