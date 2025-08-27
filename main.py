@@ -1399,7 +1399,10 @@ else:
                         company_loss = total_amount - (300 * n)
                     else:
                         driver_loss = 300 - total_amount
-                        company_loss = total_amount - (300 * (n - 1))
+                        if n>1:
+                            company_loss = total_amount - (300 * (n - 1))
+                        else:
+                            company_loss = 0
 
                 # Convert negative company_loss to positive (loss representation)
                     if company_loss < 0:
