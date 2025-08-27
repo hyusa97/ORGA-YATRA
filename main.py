@@ -1388,12 +1388,16 @@ else:
                             company_loss = 0
                     else:
                         if total_amount >= 300:
-                            if total_amount >= (300 * (n-1)):
+                            if (total_amount - 300) >= (300 * (n-1)):
                                 driver_loss = 0
                                 company_loss = 0 
-                            else:
+                            elif(total_amount - 300) < (300 * (n-1)):
                                 driver_loss = 0
-                                company_loss = (300 * (n-1)) - total_amount
+                                company_loss = (300 * (n-1)) - (total_amount - 300)
+                        else:
+                            driver_loss = 300 - total_amount
+                            company_loss = 300 * (n-1)
+
 
                 # Convert negative company_loss to positive (loss representation)
                     if company_loss < 0:
