@@ -1394,15 +1394,21 @@ else:
                     n = len(d_data)
 
                 # ---- Driver loss ----
-                    if total_amount >= 300:
-                        driver_loss = 0
-                        company_loss = total_amount - (300 * n)
-                    else:
-                        driver_loss = 300 - total_amount
-                        if n>1:
-                            company_loss = total_amount - (300 * (n - 1))
-                        else:
+                    if n == 1:
+                        if total_amount >= 300:
+                            driver_loss = 0
                             company_loss = 0
+                        else:
+                            driver_loss = 300 - total_amount
+                            company_loss = 0
+                    else:
+                        if total_amount >= 300:
+                            if total_amount >= (300 * (n-1)):
+                                driver_loss = 0
+                                company_loss = 0 
+                            else:
+                                driver_loss = 0
+                                company_loss = (300 * (n-1)) - total_amount
 
                 # Convert negative company_loss to positive (loss representation)
                     if company_loss < 0:
