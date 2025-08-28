@@ -1331,7 +1331,7 @@ else:
 
         filter_type = st.sidebar.radio(
             "Select Date Filter",
-            ["Current Month", "Current Year", "Custom Range"],
+            ["Current Month", "Current Year", "Custom Date"],
             index=0
         )
 
