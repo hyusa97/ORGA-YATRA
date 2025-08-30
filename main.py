@@ -405,10 +405,8 @@ else:
 
         collection_percentage_current_month = round((last_month_collection/(last_month_collection + current_total_loss)) * 100)
         total_loss_percentage_current_month = round((current_total_loss/(last_month_collection + current_total_loss)) * 100)
-        st.write(collection_percentage_current_month)
-        st.write(total_loss_percentage_current_month)
+  
 
-        
         col1, col2, col3, col4, col5,col6,col7 = st.columns(7)
         col1.metric(label="💰 Total Collection", value=f"₹{total_collection:,.0f}")
         col2.metric(label="📉 Total Expenses", value=f"₹{total_expense:,.0f}")
@@ -425,14 +423,13 @@ else:
 
         col4, col5, col6, col7, col8, col9, col10 = st.columns(7)
         col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.0f}")
-        col5.metric(collection_percentage_current_month)
+        col5.markdown(f"<h3 style='color:green'>{collection_percentage_current_month}%</h3>", unsafe_allow_html=True)
         col6.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.0f}")
         col7.metric(label="📉"+formatted_last_month+" Driver Loss", value= f"{max(current_driver_loss,0):,.0f}")
         col8.metric(label="📉"+formatted_last_month+" Company Loss",value= f"{max(current_company_loss,0):,.0f}")
         col9.metric(label="📉"+formatted_last_month+" Total Loss",value= f"{max(current_total_loss,0):,.0f}")
-        col10.metric(total_loss_percentage_current_month)
-        ## current month loss 
-        ## current month loss 
+        col10.markdown(f"<h3 style='color:red'>{total_loss_percentage_current_month}%</h3>", unsafe_allow_html=True)
+
 
 
 
