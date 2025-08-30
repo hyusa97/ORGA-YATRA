@@ -1354,8 +1354,8 @@ else:
         )
 
         today = pd.Timestamp.today().normalize()
-        custom_start_date, custom_end_date = None, None
-        start_date, end_date = None, today
+        
+        start_date, end_date = None, None
 
         if year_month_option == "Current Month":
             start_date = today.replace(day=1)
@@ -1389,10 +1389,10 @@ else:
                     key="end_date_picker"
                 )
             else:
-                start_date, end_date = None, None
+                custom_end_date = custom_start_date
         
-            #start_date = pd.Timestamp(custom_start_date)
-            #end_date = pd.Timestamp(custom_end_date)
+            start_date = pd.Timestamp(custom_start_date)
+            end_date = pd.Timestamp(custom_end_date)
 
 
             #--------------apply filters ---------------#
