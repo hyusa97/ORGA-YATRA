@@ -1419,7 +1419,7 @@ else:
                     total_amt = group["Amount"].sum()
 
                     first_loss = (total_amt - 300) #* -1
-                    second_loss = 300 - first_loss
+                    second_loss = 300 + first_loss
 
                     first_row = group.iloc[0].copy().to_dict()
                     second_row = group.iloc[1].copy().to_dict()
