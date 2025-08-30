@@ -1421,8 +1421,8 @@ else:
                     first_loss = (total_amt - 300) * -1
                     second_loss = 300 - first_loss
 
-                    first_row = group.iloc[0].copy()
-                    second_row = group.iloc[1].copy()
+                    first_row = group.iloc[0].copy().to_dict()
+                    second_row = group.iloc[1].copy().to_dict()
 
                     first_row["Amount"] = first_loss
                     second_row["Amount"] = second_loss
@@ -1443,8 +1443,8 @@ else:
         all_company_loss = perf_df_lm.loc[perf_df_lm["Name"] == "Zero Collection", "Amount"].sum()
         all_driver_loss = all_total_loss - all_company_loss
 
-        f_total_loss = filtered_df_lm["Amount"].sum()
-        f_company_loss = filtered_df_lm.loc[filtered_df_lm["Name"] == "Zero Collection", "Amount"].sum()
+        f_total_loss = filtered_df_lm["Amount"].sum() if "Amount" in filtered_df_lm.columns else 0
+        f_company_loss = filtered_df_lm.loc[filtered_df_lm.get("Name") == "Zero Collection", "Amount"].sum() if "Amount" in filtered_df_lm.columns else 0
         f_driver_loss = f_total_loss - f_company_loss
 
     # ---------- Metrics ----------
