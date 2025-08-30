@@ -1379,17 +1379,17 @@ else:
             #next_day = custom_start_date + timedelta(days=1)
             safe_end_default = min(custom_start_date + timedelta(days=1), max_date)
 
-            if custom_start_date < max_date:
+            #if custom_start_date < max_date:
 
-                custom_end_date = st.sidebar.date_input(
-                    "Select End Date",
-                    value=safe_end_default,
-                    min_value=custom_start_date,
-                    max_value=max_date,
-                    key="end_date_picker"
-                )
-            else:
-                custom_end_date = custom_start_date
+            custom_end_date = st.sidebar.date_input(
+                "Select End Date",
+                value=safe_end_default,
+                min_value=custom_start_date,
+                max_value=max_date,
+                key="end_date_picker"
+            )
+            #else:
+            #    custom_end_date = custom_start_date
         
             start_date = pd.Timestamp(custom_start_date)
             end_date = pd.Timestamp(custom_end_date)
@@ -1401,13 +1401,8 @@ else:
                 filtered_df = filtered_df[filtered_df["Vehicle No"] == selected_vehicle]
             if selected_driver != "All":
                 filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
-            if year_month_option == "Custom Date":
-                if isinstance(custom_start_date, date) and isinstance(custom_end_date, date):
-                    filtered_df = filtered_df[
-                        (filtered_df["Collection Date"].dt.date >= custom_start_date) &
-                        (filtered_df["Collection Date"].dt.date <= custom_end_date)
-                    ]
-            elif start_date is not None and end_date is not None:
+            
+            if start_date is not None and end_date is not None:
                 filtered_df = filtered_df[
                     (filtered_df["Collection Date"] >= start_date) &
                     (filtered_df["Collection Date"] <= end_date)
