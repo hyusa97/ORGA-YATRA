@@ -1325,10 +1325,8 @@ else:
         ).dt.normalize()
         perf_df["Amount"] = pd.to_numeric(perf_df["Amount"], errors="coerce").fillna(0)
         perf_df = perf_df.dropna(subset=["Collection Date"])
-        
 
-# ---------- Vehicle , Driver Filter ----------
-
+    # ---------- Vehicle , Driver Filter ----------
         st.sidebar.markdown("### 🚗 Filter by Vehicle")
         selected_vehicle = st.sidebar.selectbox(
             "",
@@ -1342,16 +1340,14 @@ else:
             ["All"] + sorted(perf_df["Name"].dropna().astype(str).unique()),
             key="Driver_select"
         )
+
         filtered_df = perf_df.copy()
         if selected_vehicle != "All":
             filtered_df = filtered_df[filtered_df["Vehicle No"] == selected_vehicle]
         if selected_driver != "All":
             filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
-        
 
-
-        # ----------  Date Filter ----------
-
+    # ----------  Date Filter ----------
         st.sidebar.markdown("### 📅 Filter by Date")
         year_month_option = st.sidebar.selectbox(
             "",
@@ -1360,157 +1356,96 @@ else:
         )
         today = pd.Timestamp.today().normalize()
         start_date, end_date = None, None
-       
         custom_start_date, custom_end_date = None, None
 
-       
         if year_month_option == "All":
             pass
         elif year_month_option == "Current Month":
             start_date = today.replace(day=1)
             end_date = today
-            #filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
         elif year_month_option == "Last 6 Months":
             start_date = today - pd.DateOffset(months=6)
             end_date = today
-            #filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
         elif year_month_option == "Current Year":
             start_date = today.replace(month=1, day=1)
             end_date = today
-            #filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
 
         if year_month_option == "Custom Date":
             min_date = date(2024, 1, 1)
             max_date = date.today()
             custom_start_date = st.sidebar.date_input(
                 "Select start Date",
-                value = date.today(),
-                min_value = min_date,
-                max_value = max_date,
-                key= "start_date_picker"
+                value=date.today(),
+                min_value=min_date,
+                max_value=max_date,
+                key="start_date_picker"
             )
             default_end_date = custom_start_date
-
-            if custom_start_date<max_date:
-                #next_day = custom_start_date + timedelta(days=1)
+            if custom_start_date < max_date:
                 default_end_date = min(custom_start_date + timedelta(days=1), max_date)
             custom_end_date = st.sidebar.date_input(
                 "Select End Date",
-                value = default_end_date,
-                min_value= custom_start_date,
-                max_value = max_date,
+                value=default_end_date,
+                min_value=custom_start_date,
+                max_value=max_date,
                 key="end_date_picker"
             )
             start_date = pd.Timestamp(custom_start_date)
             end_date = pd.Timestamp(custom_end_date)
-   
+
         if start_date is not None and end_date is not None:
             filtered_df = filtered_df[
                 (filtered_df["Collection Date"] >= start_date) &
                 (filtered_df["Collection Date"] <= end_date)
             ]
         st.write(f"start_date: {custom_start_date}, end_date: {custom_end_date}")
-            
 
+    # ---------- Loss Matrix preprocessing ----------
+        def apply_loss_matrix_logic(input_df: pd.DataFrame) -> pd.DataFrame:
+            df_proc = input_df.copy()
+            df_proc = df_proc.dropna(subset=["Collection Date"]).copy()
+            df_proc["Amount"] = pd.to_numeric(df_proc["Amount"], errors="coerce").fillna(0)
 
+        # Subtract 300 and flip sign
+            df_proc["Amount"] = (df_proc["Amount"] - 300) * -1
 
-    # ---------- Loss Engine (new logic) ----------
-        def evaluate_losses(dataset: pd.DataFrame, build_tables: bool = True):
-            
-            total_driver_loss = 0.0
-            total_company_loss = 0.0
-            driver_rows = []
-            company_rows = []
+        # Handle multi-vehicle for same driver/date
+            df_proc = df_proc.sort_values(by=["Collection Date", "Name", "Vehicle No"])
+            updated_rows = []
+            grouped = df_proc.groupby(["Collection Date", "Name"], group_keys=False)
 
-        # Group by date for day-wise assignment logic
-            for date, day_data in dataset.groupby("Collection Date"):
-                day_data = day_data.copy()
+            for (date, driver), group in grouped:
+                if driver != "Zero Collection" and len(group) > 1:
+                    total_amt = group["Amount"].sum()
 
-            # 1) Zero collections -> company loss = 300 each
-                zero_mask = day_data["Name"].isin(["Zero Collection", "", None])
-                zero_rows = day_data[zero_mask]
-                if not zero_rows.empty:
-                    total_company_loss += 300 * len(zero_rows)
-                    if build_tables:
-                        for _, zr in zero_rows.iterrows():
-                            company_rows.append({
-                                "Date": date,
-                                "Vehicle": zr["Vehicle No"],
-                                "Loss by Company": 300
-                            })
+                    first_loss = (total_amt - 300) * -1
+                    second_loss = 300 - first_loss
 
-            # 2) Non-zero drivers
-                non_zero = day_data[~zero_mask]
-                if non_zero.empty:
-                    continue
+                    first_row = group.iloc[0].copy()
+                    second_row = group.iloc[1].copy()
 
-                for driver, d_data in non_zero.groupby("Name"):
-                    total_amount = d_data["Amount"].sum()
-                    n = len(d_data)
+                    first_row["Amount"] = first_loss
+                    second_row["Amount"] = second_loss
+                    second_row["Name"] = "Zero Collection"
 
-                # ---- Driver loss ----
-                    if n == 1:
-                        if total_amount >= 300:
-                            driver_loss = 0
-                            company_loss = 0
-                        else:
-                            driver_loss = 300 - total_amount
-                            company_loss = 0
-                    else:
-                        if total_amount >= 300:
-                            if (total_amount - 300) >= (300 * (n-1)):
-                                driver_loss = 0
-                                company_loss = 0 
-                            elif(total_amount - 300) < (300 * (n-1)):
-                                driver_loss = 0
-                                company_loss = (300 * (n-1)) - (total_amount - 300)
-                        else:
-                            driver_loss = 300 - total_amount
-                            company_loss = 300 * (n-1)
+                    updated_rows.extend([first_row, second_row])
+                else:
+                    updated_rows.extend(group.to_dict("records"))
 
+            return pd.DataFrame(updated_rows)
 
-                # Convert negative company_loss to positive (loss representation)
-                    if company_loss < 0:
-                        company_loss = abs(company_loss)
+    # Apply new Loss Matrix logic
+        perf_df_lm = apply_loss_matrix_logic(perf_df)
+        filtered_df_lm = apply_loss_matrix_logic(filtered_df)
 
-                    total_driver_loss += driver_loss
-                    total_company_loss += company_loss
+    # ---------- Calculate losses ----------
+        all_total_loss = perf_df_lm["Amount"].sum()
+        all_company_loss = perf_df_lm.loc[perf_df_lm["Name"] == "Zero Collection", "Amount"].sum()
+        all_driver_loss = all_total_loss - all_company_loss
 
-                    if build_tables:
-                        if driver_loss > 0:
-                            driver_rows.append({
-                                "Date": date,
-                                "Driver": driver,
-                                "Vehicle(s)": ", ".join(d_data["Vehicle No"].astype(str)),
-                                "Loss by Driver": driver_loss
-                            })
-                        if company_loss > 0:
-                            company_rows.append({
-                                "Date": date,
-                                #"Driver": driver,
-                                "Vehicle(s)": ", ".join(d_data["Vehicle No"].astype(str)),
-                                "Loss by Company": company_loss
-                            })
-
-            if build_tables:
-                driver_tbl = pd.DataFrame(driver_rows)
-                company_tbl = pd.DataFrame(company_rows)
-
-                if not driver_tbl.empty:
-                    driver_tbl = driver_tbl.sort_values("Date", ascending=False).reset_index(drop=True)
-                if not company_tbl.empty:
-                    company_tbl = company_tbl.sort_values("Date", ascending=False).reset_index(drop=True)
-
-                return total_driver_loss, total_company_loss, driver_tbl, company_tbl
-
-            return total_driver_loss, total_company_loss
-
-    # ---------- All-time totals (UNFILTERED) ----------
-        all_driver_loss, all_company_loss = evaluate_losses(perf_df, build_tables=False)
-
-    # ---------- Filtered data + tables ----------
-        #filtered_df = perf_df[(perf_df["Collection Date"] >= custom_start_date) & (perf_df["Collection Date"] <= custom_end_date)]
-        f_driver_loss, f_company_loss, driver_table, company_table = evaluate_losses(filtered_df, build_tables=True)
+        f_total_loss = filtered_df_lm["Amount"].sum()
+        f_company_loss = filtered_df_lm.loc[filtered_df_lm["Name"] == "Zero Collection", "Amount"].sum()
+        f_driver_loss = f_total_loss - f_company_loss
 
     # ---------- Metrics ----------
         col1, col2, col3, col4 = st.columns(4)
@@ -1519,18 +1454,16 @@ else:
         col3.metric("Filtered Driver Loss", f"{f_driver_loss:,.0f}")
         col4.metric("Filtered Company Loss", f"{f_company_loss:,.0f}")
 
-    # ---------- Tables (filtered, date desc) ----------
-        st.subheader("👨‍✈️ Driver Performance (Filtered)")
-        if driver_table.empty:
-            st.info("No driver loss in this period.")
+    # ---------- Table ----------
+        st.subheader("📉 Loss Matrix (Filtered)")
+        if filtered_df_lm.empty:
+            st.info("No records in this period.")
         else:
-            st.dataframe(driver_table.style.format({"Loss by Driver": "{:,.0f}"}))
+            st.dataframe(
+                filtered_df_lm.sort_values(by="Collection Date", ascending=False),
+                use_container_width=True
+            )
 
-        st.subheader("🏢 Company Loss Overview (Filtered)")
-        if company_table.empty:
-            st.info("No company loss in this period.")
-        else:
-            st.dataframe(company_table.style.format({"Loss by Company": "{:,.0f}"}))
 
 
 
