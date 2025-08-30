@@ -428,7 +428,7 @@ else:
         col7.metric(label="📉"+formatted_last_month+" Driver Loss", value= f"{max(current_driver_loss,0):,.0f}")
         col8.metric(label="📉"+formatted_last_month+" Company Loss",value= f"{max(current_company_loss,0):,.0f}")
         col9.metric(label="📉"+formatted_last_month+" Total Loss",value= f"{max(current_total_loss,0):,.0f}")
-        col10.metric(label=" ", value=f"{total_loss_percentage_current_month:,.0f}%", delta=f"{total_loss_percentage_current_month:,.0f}%", delta_color="inverse")
+        col10.metric(label=" ", delta=f"{total_loss_percentage_current_month:,.0f}%", delta_color="inverse")
 
 
 
