@@ -1372,13 +1372,15 @@ else:
                 max_value = max_date,
                 key= "start_date_picker"
             )
+            
 
             if custom_start_date<max_date:
-                next_day = custom_start_date + timedelta(days=1)
+                #next_day = custom_start_date + timedelta(days=1)
+                default_end_date = min(custom_start_date + timedelta(days=1), max_date)
                 custom_end_date = st.sidebar.date_input(
                     "Select End Date",
-                    value = next_day,
-                    min_value= next_day,
+                    value = default_end_date,
+                    min_value= custom_start_date,
                     max_value = max_date,
                     key="end_date_picker"
                 )
