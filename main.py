@@ -356,8 +356,7 @@ else:
     current_company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum() if not current_month_df.empty else 0)
     current_driver_loss = max(0, current_total_loss - current_company_loss)
 
-
-
+    
 
 
 
@@ -404,6 +403,10 @@ else:
         last_month_collection = govind_last_month_collection + gaurav_last_month_collection
         last_month_expense = govind_last_month_expense + gaurav_last_month_expense
 
+        collection_percentage_current_month = round((last_month_collection/(last_month_collection + current_total_loss)) * 100)
+        total_loss_percentage_current_month = round((current_total_loss/(last_month_collection + current_total_loss)) * 100)
+
+
         
         col1, col2, col3, col4, col5,col6,col7 = st.columns(7)
         col1.metric(label="💰 Total Collection", value=f"₹{total_collection:,.0f}")
@@ -419,11 +422,14 @@ else:
         formatted_last_month = pd.to_datetime(last_month).strftime("%b %Y")  
         st.subheader("📅 "+formatted_last_month+"   Overview")
 
-        col4, col5, col6, col7 = st.columns(4)
+        col4, col5, col6, col7, col8, col9, col10 = st.columns(7)
         col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.0f}")
-        col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.0f}")
-        col6.metric(label="📉"+formatted_last_month+" Driver Loss", value= f"{max(current_driver_loss,0):,.0f}")
-        col7.metric(label="📉"+formatted_last_month+" Company Loss",value= f"{max(current_company_loss,0):,.0f}")
+        col5.metric(collection_percentage_current_month)
+        col6.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.0f}")
+        col7.metric(label="📉"+formatted_last_month+" Driver Loss", value= f"{max(current_driver_loss,0):,.0f}")
+        col8.metric(label="📉"+formatted_last_month+" Company Loss",value= f"{max(current_company_loss,0):,.0f}")
+        col9.metric(label="📉"+formatted_last_month+" Total Loss",value= f"{max(current_total_loss,0):,.0f}")
+        col10.metric(total_loss_percentage_current_month)
         ## current month loss 
         ## current month loss 
 
