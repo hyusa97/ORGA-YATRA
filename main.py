@@ -405,7 +405,8 @@ else:
 
         collection_percentage_current_month = round((last_month_collection/(last_month_collection + current_total_loss)) * 100)
         total_loss_percentage_current_month = round((current_total_loss/(last_month_collection + current_total_loss)) * 100)
-
+        st.write(collection_percentage_current_month)
+        st.write(total_loss_percentage_current_month)
 
         
         col1, col2, col3, col4, col5,col6,col7 = st.columns(7)
