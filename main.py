@@ -1342,6 +1342,12 @@ else:
             ["All"] + sorted(perf_df["Name"].dropna().astype(str).unique()),
             key="Driver_select"
         )
+        filtered_df = perf_df.copy()
+        if selected_vehicle != "All":
+            filtered_df = filtered_df[filtered_df["Vehicle No"] == selected_vehicle]
+        if selected_driver != "All":
+            filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
+        
 
 
         # ----------  Date Filter ----------
@@ -1353,61 +1359,60 @@ else:
             key="range_select",
         )
 
-        today = pd.Timestamp.today().normalize()
+        #today = pd.Timestamp.today().normalize()
         
-        start_date, end_date = None, None
-
-        if year_month_option == "Current Month":
-            start_date = today.replace(day=1)
-            end_date = today
-        elif year_month_option == "Last 6 Months":
-            start_date = today - pd.DateOffset(months=6)
-            end_date = today
-        elif year_month_option == "Current Year":
-            start_date = today.replace(month=1, day=1)
-            end_date = today
-        elif year_month_option == "Custom Date":
+        custom_start_date, custom_end_date = None, None
+        if year_month_option == "Custom Date":
             min_date = date(2024, 1, 1)
             max_date = date.today()
             custom_start_date = st.sidebar.date_input(
-                "Select Start Date",
-                value=date.today(),
-                min_value=min_date,
-                max_value=max_date,  
-                key="start_date_picker"
+                "Select start Date",
+                value = date.today(),
+                min_value = min_date,
+                max_value = max_date,
+                key= "start_date_picker"
             )
-            #next_day = custom_start_date + timedelta(days=1)
-            safe_end_default = min(custom_start_date + timedelta(days=1), max_date)
 
-            #if custom_start_date < max_date:
+            if custom_start_date<max_date:
+                next_day = custom_start_date + timedelta(days=1)
+                custom_end_date = st.sidebar.date_input(
+                    "Select End Date",
+                    value = next_day,
+                    min_value= next_day,
+                    max_value = max_date,
+                    key="end_date_picker"
+                )
+        today = pd.Timestamp.today().normalize()
 
-            custom_end_date = st.sidebar.date_input(
-                "Select End Date",
-                value=safe_end_default,
-                min_value=custom_start_date,
-                max_value=max_date,
-                key="end_date_picker"
-            )
-            #else:
-            #    custom_end_date = custom_start_date
-        
-            start_date = pd.Timestamp(custom_start_date)
-            end_date = pd.Timestamp(custom_end_date)
+        if year_month_option == "Current Month":
+            start_date = today.replace(day=1)
+            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
+        elif year_month_option == "Last 6 Months":
+            start_date = (today - pd.DateOffset(months=6)).replace(day=1)
+            start_date = pd.Timestamp.today().normalize() - pd.DateOffset(months=6)
+        elif year_month_option == "Current Year":
+            start_date = today.replace(month=1, day=1)
+            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
+        elif year_month_option == "Custom Date"and isinstance(custom_start_date, date) and isinstance(custom_end_date, date):
+            filtered_df = filtered_df[
+                (filtered_df["Collection Date"].dt.date >= custom_start_date)&
+                (filtered_df["Collection Date"].dt.date <= custom_end_date)
+            ]
 
 
             #--------------apply filters ---------------#
-        filtered_df = perf_df.copy()
-        if selected_vehicle != "All":
-            filtered_df = filtered_df[filtered_df["Vehicle No"] == selected_vehicle]
-        if selected_driver != "All":
-            filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
-        st.write(f"start_date: {start_date}, end_date: {end_date}")
+        #filtered_df = perf_df.copy()
+        #if selected_vehicle != "All":
+        #    filtered_df = filtered_df[filtered_df["Vehicle No"] == selected_vehicle]
+        #if selected_driver != "All":
+        #    filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
+        #st.write(f"start_date: {start_date}, end_date: {end_date}")
             
-        if start_date is not None and end_date is not None:
-            filtered_df = filtered_df[
-                (filtered_df["Collection Date"] >= start_date) &
-                (filtered_df["Collection Date"] <= end_date)
-            ]
+        #if start_date is not None and end_date is not None:
+        #    filtered_df = filtered_df[
+        #        (filtered_df["Collection Date"] >= start_date) &
+        #        (filtered_df["Collection Date"] <= end_date)
+        #    ]
         
             
 
