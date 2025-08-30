@@ -423,12 +423,12 @@ else:
 
         col4, col5, col6, col7, col8, col9, col10 = st.columns(7)
         col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.0f}")
-        col5.markdown(label=" ",value=f"<h3 style='color:green'>{collection_percentage_current_month:,.0f}%</h3>", unsafe_allow_html=True)
+        col5.metric(label=" ", value=f"{collection_percentage_current_month:,.0f}%", delta=f"{collection_percentage_current_month:,.0f}%", delta_color="normal")
         col6.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.0f}")
         col7.metric(label="📉"+formatted_last_month+" Driver Loss", value= f"{max(current_driver_loss,0):,.0f}")
         col8.metric(label="📉"+formatted_last_month+" Company Loss",value= f"{max(current_company_loss,0):,.0f}")
         col9.metric(label="📉"+formatted_last_month+" Total Loss",value= f"{max(current_total_loss,0):,.0f}")
-        col10.markdown(label=" ",value=f"<h3 style='color:red'>{total_loss_percentage_current_month:,.0f}%</h3>", unsafe_allow_html=True)
+        col10.metric(label=" ", value=f"{total_loss_percentage_current_month:,.0f}%", delta=f"{total_loss_percentage_current_month:,.0f}%", delta_color="inverse")
 
 
 
