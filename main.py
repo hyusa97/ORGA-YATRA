@@ -1403,21 +1403,7 @@ else:
             )
             start_date = pd.Timestamp(custom_start_date)
             end_date = pd.Timestamp(custom_end_date)
-        #elif year_month_option == "Custom Date"and isinstance(custom_start_date, date) and isinstance(custom_end_date, date):
-        #    filtered_df = filtered_df[
-        #        (filtered_df["Collection Date"].dt.date >= custom_start_date)&
-        #        (filtered_df["Collection Date"].dt.date <= custom_end_date)
-        #    ]
-
-
-            #--------------apply filters ---------------#
-        #filtered_df = perf_df.copy()
-        #if selected_vehicle != "All":
-        #    filtered_df = filtered_df[filtered_df["Vehicle No"] == selected_vehicle]
-        #if selected_driver != "All":
-        #    filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
-        #st.write(f"start_date: {start_date}, end_date: {end_date}")
-            
+   
         if start_date is not None and end_date is not None:
             filtered_df = filtered_df[
                 (filtered_df["Collection Date"] >= start_date) &
