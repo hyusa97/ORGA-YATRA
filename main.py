@@ -290,10 +290,79 @@ else:
 
 
     #---------------Remaining Balance calculation end------------
+    ## Current month loss calculation ##
+    # ---------- Base DF ----------
+    perf_df = df.copy()
+    perf_df["Collection Date"] = pd.to_datetime(
+    perf_df["Collection Date"], dayfirst=True, errors="coerce"
+    ).dt.normalize()
+    perf_df["Amount"] = pd.to_numeric(perf_df["Amount"], errors="coerce").fillna(0)
+    perf_df = perf_df.dropna(subset=["Collection Date"])
+
+
+        #st.write(f"start_date: {custom_start_date}, end_date: {custom_end_date}")
+
+    # ---------- Loss Matrix preprocessing ----------
+    def apply_loss_matrix_logic(input_df: pd.DataFrame) -> pd.DataFrame:
+        df_proc = input_df.copy()
+        df_proc = df_proc.dropna(subset=["Collection Date"]).copy()
+        df_proc["Amount"] = pd.to_numeric(df_proc["Amount"], errors="coerce").fillna(0)
+
+        # Subtract 300 and flip sign
+        df_proc["Amount"] = (df_proc["Amount"] - 300) * -1
+
+        # Handle multi-vehicle for same driver/date
+        df_proc = df_proc.sort_values(by=["Collection Date", "Name", "Vehicle No"])
+        updated_rows = []
+        grouped = df_proc.groupby(["Collection Date", "Name"], group_keys=False)
+
+        for (date, driver), group in grouped:
+            if driver != "Zero Collection" and len(group) > 1:
+                total_amt = group["Amount"].sum()
+
+                first_loss = (total_amt - 300) #* -1
+
+                second_loss = 300 + first_loss
+
+                first_row = group.iloc[0].copy().to_dict()
+                second_row = group.iloc[1].copy().to_dict()
+
+                if first_loss <= -300:
+                    first_loss = 0
+                else:
+                    second_row["Name"] = "Zero Collection"
+
+
+                first_row["Amount"] = first_loss
+                second_row["Amount"] = second_loss
+                     
+
+                updated_rows.extend([first_row, second_row])
+            else:
+                updated_rows.extend(group.to_dict("records"))
+
+        return pd.DataFrame(updated_rows)
+    # Apply new Loss Matrix logic
+    perf_df_lm = apply_loss_matrix_logic(perf_df)
+    # apply your exact driver vs company split here
+
+    #-------- current month loss ---------#
+    today = pd.Timestamp.today().normalize()
+    current_month_df = perf_df_lm[
+        (perf_df_lm["Collection Date"].dt.year == today.year) &
+        (perf_df_lm["Collection Date"].dt.month == today.month)
+        ]
+    current_total_loss = max(0, current_month_df["Amount"].sum() if not current_month_df.empty else 0)
+    current_company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum() if not current_month_df.empty else 0)
+    current_driver_loss = max(0, current_total_loss - current_company_loss)
+
+    
+
+
 
     # --- DASHBOARD UI ---
     st.sidebar.header("📂 Navigation")
-    page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Investment", "Collection Data", "Bank Transaction" ])
+    page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Investment", "Collection Data", "Bank Transaction", "Performance" ])
 
     if page == "Dashboard":
         st.title("📊 VayuVolt Dashboard")
@@ -334,7 +403,10 @@ else:
         last_month_collection = govind_last_month_collection + gaurav_last_month_collection
         last_month_expense = govind_last_month_expense + gaurav_last_month_expense
 
-        
+        collection_percentage_current_month = round((last_month_collection/(last_month_collection + current_total_loss)) * 100)
+        total_loss_percentage_current_month = round((current_total_loss/(last_month_collection + current_total_loss)) * 100)
+  
+
         col1, col2, col3, col4, col5,col6,col7 = st.columns(7)
         col1.metric(label="💰 Total Collection", value=f"₹{total_collection:,.0f}")
         col2.metric(label="📉 Total Expenses", value=f"₹{total_expense:,.0f}")
@@ -349,9 +421,17 @@ else:
         formatted_last_month = pd.to_datetime(last_month).strftime("%b %Y")  
         st.subheader("📅 "+formatted_last_month+"   Overview")
 
-        col4, col5 = st.columns(2)
+        col4, col5, col6, col7, col8, col9, col10 = st.columns(7)
         col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.0f}")
-        col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.0f}")
+        col5.metric(label=" ", value=f"{collection_percentage_current_month:,.0f}%", delta=f"{collection_percentage_current_month:,.0f}%", delta_color="normal")
+        col6.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.0f}")
+        col7.metric(label="📉"+formatted_last_month+" Driver Loss", value= f"{max(current_driver_loss,0):,.0f}")
+        col8.metric(label="📉"+formatted_last_month+" Company Loss",value= f"{max(current_company_loss,0):,.0f}")
+        col9.metric(label="📉"+formatted_last_month+" Total Loss",value= f"{max(current_total_loss,0):,.0f}")
+        col10.metric(label=" ", value=f"{total_loss_percentage_current_month:,.0f}%", delta=f"{total_loss_percentage_current_month:,.0f}%", delta_color="inverse")
+
+
+
 
         st.markdown("---")
         
@@ -1018,8 +1098,8 @@ else:
             start_date = today.replace(day=1)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
         elif year_month_option == "Last 6 Months":
-            start_date = (today - pd.DateOffset(months=6)).replace(day=1)
-            start_date = pd.Timestamp.today().normalize() - pd.DateOffset(months=6)
+            start_date = today - pd.DateOffset(months=6)
+            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
         elif year_month_option == "Current Year":
             start_date = today.replace(month=1, day=1)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
@@ -1312,6 +1392,125 @@ else:
             file_name="filtered_bank_transactions.csv",
             mime="text/csv"
         )
+
+    
+
+    elif page == "Performance":
+        st.title("📉 Performance Analysis")
+
+        if "Amount" not in perf_df_lm.columns:
+            perf_df_lm["Amount"] = pd.Series(dtype=float)
+        
+        #filtered_df_lm = apply_loss_matrix_logic(filtered_df)
+    # ---------- Vehicle , Driver Filter ----------
+        st.sidebar.markdown("### 🚗 Filter by Vehicle")
+        selected_vehicle = st.sidebar.selectbox(
+            "",
+            ["All"] + sorted(perf_df["Vehicle No"].dropna().astype(str).unique()),
+            key="Vehicle_select"
+        )
+
+        st.sidebar.markdown("### 👨‍✈️ Filter by Driver")
+        selected_driver = st.sidebar.selectbox(
+            "",
+            ["All"] + sorted(perf_df["Name"].dropna().astype(str).unique()),
+            key="Driver_select"
+        )
+
+        filtered_df_lm = perf_df_lm.copy()
+        if selected_vehicle != "All":
+            filtered_df_lm = filtered_df_lm[filtered_df_lm["Vehicle No"] == selected_vehicle]
+        if selected_driver != "All":
+            filtered_df_lm = filtered_df_lm[filtered_df_lm["Name"] == selected_driver]
+
+    # ----------  Date Filter ----------
+        st.sidebar.markdown("### 📅 Filter by Date")
+        year_month_option = st.sidebar.selectbox(
+            "",
+            ["All", "Current Month", "Last 6 Months", "Current Year", "Custom Date"],
+            key="range_select",
+        )
+        
+        start_date, end_date = None, None
+        custom_start_date, custom_end_date = None, None
+
+        if year_month_option == "All":
+            pass
+        elif year_month_option == "Current Month":
+            start_date = today.replace(day=1)
+            end_date = today
+        elif year_month_option == "Last 6 Months":
+            start_date = today - pd.DateOffset(months=6)
+            end_date = today
+        elif year_month_option == "Current Year":
+            start_date = today.replace(month=1, day=1)
+            end_date = today
+
+        if year_month_option == "Custom Date":
+            min_date = date(2024, 1, 1)
+            max_date = date.today()
+            custom_start_date = st.sidebar.date_input(
+                "Select start Date",
+                value=date.today(),
+                min_value=min_date,
+                max_value=max_date,
+                key="start_date_picker"
+            )
+            default_end_date = custom_start_date
+            if custom_start_date < max_date:
+                default_end_date = min(custom_start_date + timedelta(days=1), max_date)
+            custom_end_date = st.sidebar.date_input(
+                "Select End Date",
+                value=default_end_date,
+                min_value=custom_start_date,
+                max_value=max_date,
+                key="end_date_picker"
+            )
+            start_date = pd.Timestamp(custom_start_date)
+            end_date = pd.Timestamp(custom_end_date)
+
+        if start_date is not None and end_date is not None:
+            filtered_df_lm = filtered_df_lm[
+                (filtered_df_lm["Collection Date"] >= start_date) &
+                (filtered_df_lm["Collection Date"] <= end_date)
+            ]
+
+    # ---------- Calculate losses ----------
+        all_total_loss = perf_df_lm["Amount"].sum()
+        all_company_loss = perf_df_lm.loc[perf_df_lm["Name"] == "Zero Collection", "Amount"].sum()
+        all_driver_loss = all_total_loss - all_company_loss
+
+        f_total_loss = filtered_df_lm["Amount"].sum() if "Amount" in filtered_df_lm.columns else 0
+        f_company_loss = filtered_df_lm.loc[filtered_df_lm.get("Name") == "Zero Collection", "Amount"].sum() if "Amount" in filtered_df_lm.columns else 0
+        f_driver_loss = f_total_loss - f_company_loss
+
+
+
+        #current_total_loss, current_driver_loss, current_company_loss = calculate_current_month_losses(perf_df_lm)
+
+
+    # ---------- Metrics ----------
+        col0, col1, col2 = st.columns(3)
+        col0.metric("All-time Total Loss", f"{all_total_loss:,.0f}")
+        col1.metric("All-time Driver Loss", f"{all_driver_loss:,.0f}")
+        col2.metric("All-time Company Loss", f"{all_company_loss:,.0f}")
+
+        st.markdown("---")
+        col0, col1, col2 = st.columns(3)
+        col0.metric("Filtered Total Loss", f"{f_total_loss:,.0f}")
+        col1.metric("Filtered Driver Loss", f"{f_driver_loss:,.0f}")
+        col2.metric("Filtered Company Loss", f"{f_company_loss:,.0f}")
+
+    # ---------- Table ----------
+        st.subheader("📉 Loss Matrix (Filtered)")
+        if filtered_df_lm.empty:
+            st.info("No records in this period.")
+        else:
+            st.dataframe(
+                filtered_df_lm.sort_values(by="Collection Date", ascending=False),
+                use_container_width=True
+            )
+
 
     
     # 🔁 Refresh button
