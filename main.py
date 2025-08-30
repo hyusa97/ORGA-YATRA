@@ -1448,7 +1448,8 @@ else:
         f_driver_loss = f_total_loss - f_company_loss
 
     # ---------- Metrics ----------
-        col1, col2, col3, col4 = st.columns(4)
+        col0, col1, col2, col3, col4 = st.columns(4)
+        col0.metric("All-time Total Loss", f"{all_total_loss:,.0f}")
         col1.metric("All-time Driver Loss", f"{all_driver_loss:,.0f}")
         col2.metric("All-time Company Loss", f"{all_company_loss:,.0f}")
         col3.metric("Filtered Driver Loss", f"{f_driver_loss:,.0f}")
