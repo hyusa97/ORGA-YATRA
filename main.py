@@ -1426,7 +1426,7 @@ else:
 
                     first_row["Amount"] = first_loss
                     second_row["Amount"] = second_loss
-                    second_row["Name"] = "Extra vehicle Assigned"
+                    second_row["Name"] = "Zero Collection"
 
                     updated_rows.extend([first_row, second_row])
                 else:
