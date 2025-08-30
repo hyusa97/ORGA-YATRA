@@ -1396,17 +1396,18 @@ else:
 
 
             #--------------apply filters ---------------#
-            filtered_df = perf_df.copy()
-            if selected_vehicle != "All":
-                filtered_df = filtered_df[filtered_df["Vehicle No"] == selected_vehicle]
-            if selected_driver != "All":
-                filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
+        filtered_df = perf_df.copy()
+        if selected_vehicle != "All":
+            filtered_df = filtered_df[filtered_df["Vehicle No"] == selected_vehicle]
+        if selected_driver != "All":
+            filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
             
-            if start_date is not None and end_date is not None:
-                filtered_df = filtered_df[
-                    (filtered_df["Collection Date"] >= start_date) &
-                    (filtered_df["Collection Date"] <= end_date)
-                ]
+        if start_date is not None and end_date is not None:
+            filtered_df = filtered_df[
+                (filtered_df["Collection Date"] >= start_date) &
+                (filtered_df["Collection Date"] <= end_date)
+            ]
+            
 
 
 
