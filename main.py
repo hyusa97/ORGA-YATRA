@@ -1402,7 +1402,7 @@ else:
         if selected_driver != "All":
             filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
             
-        if start_date is not None and end_date is not None:
+        if start_date is  None and end_date is  None:
             filtered_df = filtered_df[
                 (filtered_df["Collection Date"] >= start_date) &
                 (filtered_df["Collection Date"] <= end_date)
