@@ -291,26 +291,7 @@ else:
 
     #---------------Remaining Balance calculation end------------
 
-    #---------------current month loss calc---------------------#
-    def calculate_current_month_losses(df: pd.DataFrame):
-        today = pd.Timestamp.today().normalize()
-    
-        # Filter current month
-        current_month_df = df[
-            (df["Collection Date"].dt.year == today.year) &
-            (df["Collection Date"].dt.month == today.month)
-        ]
-    
-        if current_month_df.empty:
-            return 0, 0, 0
-    
-        total_loss = max(0, current_month_df["Amount"].sum())
-        company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum())
-        driver_loss = max(0, total_loss - company_loss)
-    
-        return total_loss, driver_loss, company_loss
 
-  #---------------current month loss calc---------------------#
 
 
 
@@ -378,19 +359,8 @@ else:
         col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.0f}")
 
         ## current month loss 
-        def apply_loss_matrix_logic(dash_df):
-            dash_df = dash_df.copy()
+        ## current month loss 
 
-            dash_df["Total Amount"] = pd.to_numeric(dash_df["Total Amount"], errors="coerce").fillna(0)
-            dash_df["Amount"] = dash_df["Total Amount"].apply(lambda x: 300 - x if x < 300 else 0)
-            return dash_df
-        dashboard_df_lm = apply_loss_matrix_logic(df.copy())
-        current_total_loss, current_driver_loss, current_company_loss = calculate_current_month_losses(dashboard_df_lm)
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Current Month Total Loss", f"{current_total_loss:,.0f}")
-        col2.metric("Current Month Driver Loss", f"{current_driver_loss:,.0f}")
-        col3.metric("Current Month Company Loss", f"{current_company_loss:,.0f}")
 
 
         st.markdown("---")
@@ -1500,15 +1470,15 @@ else:
         f_driver_loss = f_total_loss - f_company_loss
 
         #-------- current month loss ---------#
-        #current_month_df = perf_df_lm[
-        #    (perf_df_lm["Collection Date"].dt.year == today.year) &
-        #    (perf_df_lm["Collection Date"].dt.month == today.month)
-        #]
-        #current_total_loss = max(0, current_month_df["Amount"].sum() if not current_month_df.empty else 0)
-        #current_company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum() if not current_month_df.empty else 0)
-        #current_driver_loss = max(0, current_total_loss - current_company_loss)
+        current_month_df = perf_df_lm[
+            (perf_df_lm["Collection Date"].dt.year == today.year) &
+            (perf_df_lm["Collection Date"].dt.month == today.month)
+        ]
+        current_total_loss = max(0, current_month_df["Amount"].sum() if not current_month_df.empty else 0)
+        current_company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum() if not current_month_df.empty else 0)
+        current_driver_loss = max(0, current_total_loss - current_company_loss)
 
-        current_total_loss, current_driver_loss, current_company_loss = calculate_current_month_losses(perf_df_lm)
+        #current_total_loss, current_driver_loss, current_company_loss = calculate_current_month_losses(perf_df_lm)
 
 
     # ---------- Metrics ----------
