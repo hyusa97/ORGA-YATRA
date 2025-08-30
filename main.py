@@ -1513,7 +1513,7 @@ else:
         all_driver_loss, all_company_loss = evaluate_losses(perf_df, build_tables=False)
 
     # ---------- Filtered data + tables ----------
-        filtered_df = perf_df[(perf_df["Collection Date"] >= start_date) & (perf_df["Collection Date"] <= end_date)]
+        filtered_df = perf_df[(perf_df["Collection Date"] >= custom_start_date) & (perf_df["Collection Date"] <= custom_end_date)]
         f_driver_loss, f_company_loss, driver_table, company_table = evaluate_losses(filtered_df, build_tables=True)
 
     # ---------- Metrics ----------
