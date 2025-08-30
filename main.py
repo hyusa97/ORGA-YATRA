@@ -1398,7 +1398,7 @@ else:
                 (filtered_df["Collection Date"] >= start_date) &
                 (filtered_df["Collection Date"] <= end_date)
             ]
-        st.write(f"start_date: {custom_start_date}, end_date: {custom_end_date}")
+        #st.write(f"start_date: {custom_start_date}, end_date: {custom_end_date}")
 
     # ---------- Loss Matrix preprocessing ----------
         def apply_loss_matrix_logic(input_df: pd.DataFrame) -> pd.DataFrame:
@@ -1448,7 +1448,7 @@ else:
         f_driver_loss = f_total_loss - f_company_loss
 
     # ---------- Metrics ----------
-        col0, col1, col2, col3, col4 = st.columns(4)
+        col0, col1, col2, col3, col4 = st.columns(5)
         col0.metric("All-time Total Loss", f"{all_total_loss:,.0f}")
         col1.metric("All-time Driver Loss", f"{all_driver_loss:,.0f}")
         col2.metric("All-time Company Loss", f"{all_company_loss:,.0f}")
