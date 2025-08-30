@@ -1454,17 +1454,33 @@ else:
         f_company_loss = filtered_df_lm.loc[filtered_df_lm.get("Name") == "Zero Collection", "Amount"].sum() if "Amount" in filtered_df_lm.columns else 0
         f_driver_loss = f_total_loss - f_company_loss
 
-    # ---------- Metrics ----------
-        col0, = st.columns(1)
-        col0.metric("All-time Total Loss", f"{all_total_loss:,.0f}")
+        #-------- current month loss ---------#
+        current_month_df = perf_df_lm[
+            (perf_df_lm["Collection Date"].dt.year == today.year) &
+            (perf_df_lm["Collection Date"].dt.month == today.month)
+        ]
+        current_total_loss = max(0, current_month_df["Amount"].sum() if not current_month_df.empty else 0)
+        current_company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum() if not current_month_df.empty else 0)
+        current_driver_loss = max(0, current_total_loss - current_company_loss)
 
-        col1, col2 = st.columns(2)
+    # ---------- Metrics ----------
+        col0, col1, col2 = st.columns(3)
+        col0.metric("All-time Total Loss", f"{all_total_loss:,.0f}")
         col1.metric("All-time Driver Loss", f"{all_driver_loss:,.0f}")
         col2.metric("All-time Company Loss", f"{all_company_loss:,.0f}")
 
-        col0, col1 = st.columns(2)
+        st.markdown("---")
+
+        col0, col1, col2 = st.columns(2)
+        col2.metric("Current Month Total Loss", f"{current_total_loss:,.0f}")
+        col1.metric("Current Month Driver Loss", f"{current_driver_loss:,.0f}")
+        col2.metric("Current Month Company Loss", f"{current_company_loss:,.0f}")
+        
+
+        st.markdown("---")
+        col0, col2 = st.columns(3)
         col0.metric("Filtered Driver Loss", f"{f_driver_loss:,.0f}")
-        col1.metric("Filtered Company Loss", f"{f_company_loss:,.0f}")
+        col2.metric("Filtered Company Loss", f"{f_company_loss:,.0f}")
 
     # ---------- Table ----------
         st.subheader("📉 Loss Matrix (Filtered)")
