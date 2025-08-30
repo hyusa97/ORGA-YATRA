@@ -290,6 +290,29 @@ else:
 
 
     #---------------Remaining Balance calculation end------------
+    ## Current month loss calculation ##
+    dash_df = df.copy()
+
+    # fix column names if mismatch
+    if "Total Amount" not in dash_df.columns and "Amount" in dash_df.columns:
+        dash_df.rename(columns={"Amount": "Total Amount"}, inplace=True)
+
+    dash_df["Total Amount"] = pd.to_numeric(dash_df["Total Amount"], errors="coerce").fillna(0)
+    dash_df["Loss"] = dash_df["Total Amount"].apply(lambda x: 300 - x if x < 300 else 0)
+
+    dash_df["Collection Date"] = pd.to_datetime(dash_df["Collection Date"], errors="coerce")
+    current_month = pd.Timestamp.now().month
+    current_year = pd.Timestamp.now().year
+
+    dash_df_current = dash_df[
+        (dash_df["Collection Date"].dt.month == current_month) &
+        (dash_df["Collection Date"].dt.year == current_year)
+    ]
+
+    # apply your exact driver vs company split here
+    current_total_loss = dash_df_current["Loss"].sum()
+    current_driver_loss = dash_df_current["Loss"].apply(lambda x: x * 0.2).sum()
+    current_company_loss = dash_df_current["Loss"].apply(lambda x: x * 0.8).sum()
 
 
 
@@ -354,10 +377,11 @@ else:
         formatted_last_month = pd.to_datetime(last_month).strftime("%b %Y")  
         st.subheader("📅 "+formatted_last_month+"   Overview")
 
-        col4, col5 = st.columns(2)
+        col4, col5, col6, col7 = st.columns(4)
         col4.metric(label="📈"+formatted_last_month+"  Collection", value=f"₹{last_month_collection:,.0f}")
         col5.metric(label="📉"+formatted_last_month+" Expenses", value=f"₹{last_month_expense:,.0f}")
-
+        col6.metric(label="📉"+formatted_last_month+" Driver Loss", value= f"{max(current_driver_loss,0):,.0f}")
+        col7.metric(label="📉"+formatted_last_month+" Company Loss",value= f"{max(current_company_loss,0):,.0f}")
         ## current month loss 
         ## current month loss 
 
