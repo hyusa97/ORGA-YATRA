@@ -291,28 +291,70 @@ else:
 
     #---------------Remaining Balance calculation end------------
     ## Current month loss calculation ##
-    dash_df = df.copy()
+    # ---------- Base DF ----------
+    perf_df = df.copy()
+    perf_df["Collection Date"] = pd.to_datetime(
+    perf_df["Collection Date"], dayfirst=True, errors="coerce"
+    ).dt.normalize()
+    perf_df["Amount"] = pd.to_numeric(perf_df["Amount"], errors="coerce").fillna(0)
+    perf_df = perf_df.dropna(subset=["Collection Date"])
 
-    # fix column names if mismatch
-    if "Total Amount" not in dash_df.columns and "Amount" in dash_df.columns:
-        dash_df.rename(columns={"Amount": "Total Amount"}, inplace=True)
 
-    dash_df["Total Amount"] = pd.to_numeric(dash_df["Total Amount"], errors="coerce").fillna(0)
-    dash_df["Loss"] = dash_df["Total Amount"].apply(lambda x: 300 - x if x < 300 else 0)
+        #st.write(f"start_date: {custom_start_date}, end_date: {custom_end_date}")
 
-    dash_df["Collection Date"] = pd.to_datetime(dash_df["Collection Date"], errors="coerce")
-    current_month = pd.Timestamp.now().month
-    current_year = pd.Timestamp.now().year
+    # ---------- Loss Matrix preprocessing ----------
+    def apply_loss_matrix_logic(input_df: pd.DataFrame) -> pd.DataFrame:
+        df_proc = input_df.copy()
+        df_proc = df_proc.dropna(subset=["Collection Date"]).copy()
+        df_proc["Amount"] = pd.to_numeric(df_proc["Amount"], errors="coerce").fillna(0)
 
-    dash_df_current = dash_df[
-        (dash_df["Collection Date"].dt.month == current_month) &
-        (dash_df["Collection Date"].dt.year == current_year)
-    ]
+        # Subtract 300 and flip sign
+        df_proc["Amount"] = (df_proc["Amount"] - 300) * -1
 
+        # Handle multi-vehicle for same driver/date
+        df_proc = df_proc.sort_values(by=["Collection Date", "Name", "Vehicle No"])
+        updated_rows = []
+        grouped = df_proc.groupby(["Collection Date", "Name"], group_keys=False)
+
+        for (date, driver), group in grouped:
+            if driver != "Zero Collection" and len(group) > 1:
+                total_amt = group["Amount"].sum()
+
+                first_loss = (total_amt - 300) #* -1
+
+                second_loss = 300 + first_loss
+
+                first_row = group.iloc[0].copy().to_dict()
+                second_row = group.iloc[1].copy().to_dict()
+
+                if first_loss <= -300:
+                    first_loss = 0
+                else:
+                    second_row["Name"] = "Zero Collection"
+
+
+                first_row["Amount"] = first_loss
+                second_row["Amount"] = second_loss
+                     
+
+                updated_rows.extend([first_row, second_row])
+            else:
+                updated_rows.extend(group.to_dict("records"))
+
+        return pd.DataFrame(updated_rows)
+    # Apply new Loss Matrix logic
+    perf_df_lm = apply_loss_matrix_logic(perf_df)
     # apply your exact driver vs company split here
-    current_total_loss = dash_df_current["Loss"].sum()
-    current_driver_loss = dash_df_current["Loss"].apply(lambda x: x * 0.2).sum()
-    current_company_loss = dash_df_current["Loss"].apply(lambda x: x * 0.8).sum()
+
+    #-------- current month loss ---------#
+    today = pd.Timestamp.today().normalize()
+    current_month_df = perf_df_lm[
+        (perf_df_lm["Collection Date"].dt.year == today.year) &
+        (perf_df_lm["Collection Date"].dt.month == today.month)
+        ]
+    current_total_loss = max(0, current_month_df["Amount"].sum() if not current_month_df.empty else 0)
+    current_company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum() if not current_month_df.empty else 0)
+    current_driver_loss = max(0, current_total_loss - current_company_loss)
 
 
 
@@ -1352,61 +1394,6 @@ else:
     elif page == "Performance":
         st.title("📉 Performance Analysis")
 
-    # ---------- Base DF ----------
-        perf_df = df.copy()
-        perf_df["Collection Date"] = pd.to_datetime(
-            perf_df["Collection Date"], dayfirst=True, errors="coerce"
-        ).dt.normalize()
-        perf_df["Amount"] = pd.to_numeric(perf_df["Amount"], errors="coerce").fillna(0)
-        perf_df = perf_df.dropna(subset=["Collection Date"])
-
-
-        #st.write(f"start_date: {custom_start_date}, end_date: {custom_end_date}")
-
-    # ---------- Loss Matrix preprocessing ----------
-        def apply_loss_matrix_logic(input_df: pd.DataFrame) -> pd.DataFrame:
-            df_proc = input_df.copy()
-            df_proc = df_proc.dropna(subset=["Collection Date"]).copy()
-            df_proc["Amount"] = pd.to_numeric(df_proc["Amount"], errors="coerce").fillna(0)
-
-        # Subtract 300 and flip sign
-            df_proc["Amount"] = (df_proc["Amount"] - 300) * -1
-
-        # Handle multi-vehicle for same driver/date
-            df_proc = df_proc.sort_values(by=["Collection Date", "Name", "Vehicle No"])
-            updated_rows = []
-            grouped = df_proc.groupby(["Collection Date", "Name"], group_keys=False)
-
-            for (date, driver), group in grouped:
-                if driver != "Zero Collection" and len(group) > 1:
-                    total_amt = group["Amount"].sum()
-
-                    first_loss = (total_amt - 300) #* -1
-
-                    second_loss = 300 + first_loss
-
-                    first_row = group.iloc[0].copy().to_dict()
-                    second_row = group.iloc[1].copy().to_dict()
-
-                    if first_loss <= -300:
-                        first_loss = 0
-                    else:
-                        second_row["Name"] = "Zero Collection"
-
-
-                    first_row["Amount"] = first_loss
-                    second_row["Amount"] = second_loss
-                     
-
-                    updated_rows.extend([first_row, second_row])
-                else:
-                    updated_rows.extend(group.to_dict("records"))
-
-            return pd.DataFrame(updated_rows)
-
-    # Apply new Loss Matrix logic
-        perf_df_lm = apply_loss_matrix_logic(perf_df)
-
         if "Amount" not in perf_df_lm.columns:
             perf_df_lm["Amount"] = pd.Series(dtype=float)
         
@@ -1439,7 +1426,7 @@ else:
             ["All", "Current Month", "Last 6 Months", "Current Year", "Custom Date"],
             key="range_select",
         )
-        today = pd.Timestamp.today().normalize()
+        
         start_date, end_date = None, None
         custom_start_date, custom_end_date = None, None
 
@@ -1493,14 +1480,7 @@ else:
         f_company_loss = filtered_df_lm.loc[filtered_df_lm.get("Name") == "Zero Collection", "Amount"].sum() if "Amount" in filtered_df_lm.columns else 0
         f_driver_loss = f_total_loss - f_company_loss
 
-        #-------- current month loss ---------#
-        current_month_df = perf_df_lm[
-            (perf_df_lm["Collection Date"].dt.year == today.year) &
-            (perf_df_lm["Collection Date"].dt.month == today.month)
-        ]
-        current_total_loss = max(0, current_month_df["Amount"].sum() if not current_month_df.empty else 0)
-        current_company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum() if not current_month_df.empty else 0)
-        current_driver_loss = max(0, current_total_loss - current_company_loss)
+
 
         #current_total_loss, current_driver_loss, current_company_loss = calculate_current_month_losses(perf_df_lm)
 
