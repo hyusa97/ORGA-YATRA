@@ -291,6 +291,30 @@ else:
 
     #---------------Remaining Balance calculation end------------
 
+    #---------------current month loss calc---------------------#
+    def calculate_current_month_losses(df: pd.DataFrame):
+        today = pd.Timestamp.today().normalize()
+    
+        # Filter current month
+        current_month_df = df[
+            (df["Collection Date"].dt.year == today.year) &
+            (df["Collection Date"].dt.month == today.month)
+        ]
+    
+        if current_month_df.empty:
+            return 0, 0, 0
+    
+        total_loss = max(0, current_month_df["Amount"].sum())
+        company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum())
+        driver_loss = max(0, total_loss - company_loss)
+    
+        return total_loss, driver_loss, company_loss
+
+  #---------------current month loss calc---------------------#
+
+
+
+
     # --- DASHBOARD UI ---
     st.sidebar.header("📂 Navigation")
     page = st.sidebar.radio("Go to:", ["Dashboard", "Monthly Summary", "Grouped Data", "Expenses", "Investment", "Collection Data", "Bank Transaction", "Performance" ])
@@ -1460,13 +1484,16 @@ else:
         f_driver_loss = f_total_loss - f_company_loss
 
         #-------- current month loss ---------#
-        current_month_df = perf_df_lm[
-            (perf_df_lm["Collection Date"].dt.year == today.year) &
-            (perf_df_lm["Collection Date"].dt.month == today.month)
-        ]
-        current_total_loss = max(0, current_month_df["Amount"].sum() if not current_month_df.empty else 0)
-        current_company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum() if not current_month_df.empty else 0)
-        current_driver_loss = max(0, current_total_loss - current_company_loss)
+        #current_month_df = perf_df_lm[
+        #    (perf_df_lm["Collection Date"].dt.year == today.year) &
+        #    (perf_df_lm["Collection Date"].dt.month == today.month)
+        #]
+        #current_total_loss = max(0, current_month_df["Amount"].sum() if not current_month_df.empty else 0)
+        #current_company_loss = max(0, current_month_df.loc[current_month_df["Name"] == "Zero Collection", "Amount"].sum() if not current_month_df.empty else 0)
+        #current_driver_loss = max(0, current_total_loss - current_company_loss)
+
+        current_total_loss, current_driver_loss, current_company_loss = calculate_current_month_losses(perf_df_lm)
+
 
     # ---------- Metrics ----------
         col0, col1, col2 = st.columns(3)
@@ -1497,10 +1524,6 @@ else:
                 filtered_df_lm.sort_values(by="Collection Date", ascending=False),
                 use_container_width=True
             )
-
-
-
-
 
 
     
