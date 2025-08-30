@@ -1362,35 +1362,25 @@ else:
 
         st.sidebar.markdown("### 📅 Filter by Date")
         year_month_option = st.sidebar.selectbox(
-        "",
-        ["All", "Current Month", "Last 6 Months", "Current Year", "Custom Date"],
-        key="range_select",
+            "",
+            ["All", "Current Month", "Last 6 Months", "Current Year", "Custom Date"],
+            key="range_select",
         )
 
         today = pd.Timestamp.today().normalize()
-        start_date, end_date = None, None  # default
+        filtered_df = perf_df.copy()  
 
-        if year_month_option == "All":
-    # No filtering, use full dataset
-            filtered_df = perf_df.copy()
-
-        elif year_month_option == "Current Month":
+        if year_month_option == "Current Month":
             start_date = today.replace(day=1)
-            end_date = today
-            filtered_df = perf_df[(perf_df["Collection Date"] >= start_date) &
-                          (perf_df["Collection Date"] <= end_date)]
+            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
 
         elif year_month_option == "Last 6 Months":
             start_date = (today - pd.DateOffset(months=6)).replace(day=1)
-            end_date = today
-            filtered_df = perf_df[(perf_df["Collection Date"] >= start_date) &
-                          (perf_df["Collection Date"] <= end_date)]
+            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
 
         elif year_month_option == "Current Year":
             start_date = today.replace(month=1, day=1)
-            end_date = today
-            filtered_df = perf_df[(perf_df["Collection Date"] >= start_date) &
-                          (perf_df["Collection Date"] <= end_date)]
+            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
 
         elif year_month_option == "Custom Date":
             min_date = date(2024, 1, 1)
@@ -1404,24 +1394,26 @@ else:
                 key="start_date_picker"
             )
 
-            if custom_start_date < max_date:
-                next_day = custom_start_date + timedelta(days=1)
-                custom_end_date = st.sidebar.date_input(
-                    "Select End Date",
-                    value=next_day,
-                    min_value=next_day,
-                    max_value=max_date,
-                    key="end_date_picker"
-                )
-            else:
-                custom_end_date = custom_start_date
+            custom_end_date = st.sidebar.date_input(
+                "Select End Date",
+                value=date.today(),
+                min_value=min_date,
+                max_value=max_date,
+                key="end_date_picker"
+            )
 
-    # Convert to Timestamp
-            start_date = pd.to_datetime(custom_start_date)
-            end_date = pd.to_datetime(custom_end_date)
 
-            filtered_df = perf_df[(perf_df["Collection Date"] >= start_date) &
-                                  (perf_df["Collection Date"] <= end_date)]
+            if custom_start_date is not None and custom_end_date is not None:
+                custom_start_ts = pd.to_datetime(custom_start_date)
+                custom_end_ts = pd.to_datetime(custom_end_date)
+
+                if custom_start_ts <= custom_end_ts:
+                    filtered_df = filtered_df[
+                        (filtered_df["Collection Date"] >= custom_start_ts) &
+                        (filtered_df["Collection Date"] <= custom_end_ts)
+                    ]
+                else:
+                    st.sidebar.error("⚠️ End date must be after start date!")
 
 
 
