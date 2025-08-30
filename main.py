@@ -1320,10 +1320,9 @@ else:
 
     # ---------- Base DF ----------
         perf_df = df.copy()
-        perf_df["Collection Date"] = (
-        pd.to_datetime(perf_df["Collection Date"], dayfirst=True, errors="coerce")
-        .dt.normalize()   # keep only date
-    )
+        perf_df["Collection Date"] = pd.to_datetime(
+            perf_df["Collection Date"], dayfirst=True, errors="coerce"
+        ).dt.normalize()
         perf_df["Amount"] = pd.to_numeric(perf_df["Amount"], errors="coerce").fillna(0)
         perf_df = perf_df.dropna(subset=["Collection Date"])
         
@@ -1344,19 +1343,6 @@ else:
             key="Driver_select"
         )
 
-    # Start from perf_df and apply selections cumulatively
-        filtered_df = perf_df.copy()
-
-        if selected_vehicle != "All":
-            filtered_df = filtered_df[filtered_df["Vehicle No"] == selected_vehicle]
-        else:
-            filtered_df = df.copy()
-
-        if selected_driver != "All":
-            filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
-        else:
-            filtered_df = df.copy()
-
 
         # ----------  Date Filter ----------
 
@@ -1368,52 +1354,45 @@ else:
         )
 
         today = pd.Timestamp.today().normalize()
-        filtered_df = perf_df.copy()  
+        start_date, end_date = None, today
 
         if year_month_option == "Current Month":
             start_date = today.replace(day=1)
-            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-
         elif year_month_option == "Last 6 Months":
-            start_date = (today - pd.DateOffset(months=6)).replace(day=1)
-            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-
+            start_date = today - pd.DateOffset(months=6)
         elif year_month_option == "Current Year":
             start_date = today.replace(month=1, day=1)
-            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
-
         elif year_month_option == "Custom Date":
             min_date = date(2024, 1, 1)
-            max_date = date.today()
-
             custom_start_date = st.sidebar.date_input(
                 "Select Start Date",
                 value=date.today(),
                 min_value=min_date,
-                max_value=max_date,
+                max_value=date.today(),  
                 key="start_date_picker"
             )
-
+            next_day = custom_start_date + timedelta(days=1)
             custom_end_date = st.sidebar.date_input(
                 "Select End Date",
-                value=date.today(),
-                min_value=min_date,
-                max_value=max_date,
+                value=next_day,
+                min_value=next_day,
+                max_value=date.today(),
                 key="end_date_picker"
             )
+            start_date = pd.Timestamp(custom_start_date)
+            end_date = pd.Timestamp(custom_end_date)
 
-
-            if custom_start_date is not None and custom_end_date is not None:
-                custom_start_ts = pd.to_datetime(custom_start_date)
-                custom_end_ts = pd.to_datetime(custom_end_date)
-
-                if custom_start_ts <= custom_end_ts:
-                    filtered_df = filtered_df[
-                        (filtered_df["Collection Date"] >= custom_start_ts) &
-                        (filtered_df["Collection Date"] <= custom_end_ts)
-                    ]
-                else:
-                    st.sidebar.error("⚠️ End date must be after start date!")
+            #--------------apply filters ---------------#
+            filtered_df = perf_df.copy()
+            if selected_vehicle != "All":
+                filtered_df = filtered_df[filtered_df["Vehicle No"] == selected_vehicle]
+            if selected_driver != "All":
+                filtered_df = filtered_df[filtered_df["Name"] == selected_driver]
+            if start_date is not None:
+                filtered_df = filtered_df[
+                    (filtered_df["Collection Date"] >= start_date) &
+                    (filtered_df["Collection Date"] <= end_date)
+                ]
 
 
 
