@@ -1388,8 +1388,8 @@ else:
             start_date = today.replace(day=1)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
         elif year_month_option == "Last 6 Months":
-            start_date = (today - pd.DateOffset(months=6)).replace(day=1)
-            start_date = pd.Timestamp.today().normalize() - pd.DateOffset(months=6)
+            start_date = today - pd.DateOffset(months=6)
+            filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
         elif year_month_option == "Current Year":
             start_date = today.replace(month=1, day=1)
             filtered_df = filtered_df[filtered_df["Collection Date"] >= start_date]
