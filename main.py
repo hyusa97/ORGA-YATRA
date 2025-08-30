@@ -1479,8 +1479,8 @@ else:
 
         st.markdown("---")
         col0, col1, col2 = st.columns(3)
-        col0.metric("Filtered Driver Loss", f"{f_driver_loss:,.0f}")
-        
+        col0.metric("Filtered Total Loss", f"{f_total_loss:,.0f}")
+        col1.metric("Filtered Driver Loss", f"{f_driver_loss:,.0f}")
         col2.metric("Filtered Company Loss", f"{f_company_loss:,.0f}")
 
     # ---------- Table ----------
