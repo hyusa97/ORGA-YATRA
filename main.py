@@ -1418,7 +1418,7 @@ else:
                 if driver != "Zero Collection" and len(group) > 1:
                     total_amt = group["Amount"].sum()
 
-                    first_loss = (total_amt - 300) * -1
+                    first_loss = (total_amt - 300) #* -1
                     second_loss = 300 - first_loss
 
                     first_row = group.iloc[0].copy().to_dict()
