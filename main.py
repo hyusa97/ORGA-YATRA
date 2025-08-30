@@ -1439,10 +1439,9 @@ else:
                     key="end_date_picker"
                 )
 
-            if (
-                isinstance(custom_start_date, date) and 
-                isinstance(custom_end_date, date)
-            ):
+            if custom_start_date and custom_end_date:
+                custom_start_ts = pd.to_datetime(custom_start_date)
+                custom_end_ts = pd.to_datetime(custom_end_date)
                 filtered_df = filtered_df[
                     (filtered_df["Collection Date"].dt.date >= custom_start_date) &
                     (filtered_df["Collection Date"].dt.date <= custom_end_date)
