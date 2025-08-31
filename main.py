@@ -448,7 +448,7 @@ else:
                 "",
                 ["1 Week", "1 Month", "3 Months", "6 Months", "1 Year", "3 Years", "5 Years", "Max"],
                 horizontal=True,
-                index =7
+                index =2
             )
         
         # Determine the date range based on selection
@@ -1127,7 +1127,7 @@ else:
                 "",  # Remove label
                 ["1 Week", "1 Month", "3 Months", "6 Months", "1 Year", "3 Years", "5 Years", "Max"],
                 horizontal=True,
-                index=7
+                index=2
             )
         
         # === FILTER BASED ON SELECTION ===
