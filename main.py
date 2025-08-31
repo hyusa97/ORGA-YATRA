@@ -578,14 +578,14 @@ else:
         
         google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
                 
-        col1, col2 = st.columns([6, 1])
-        with col2:
-            st.markdown(
-                f'<a href="https://forms.gle/ZyvCBLFaPC1szPGd7" target="_blank">'
-                f'<button style="background-color:#f44336; color:white; padding:8px 16px; font-size:14px; border:none; border-radius:5px;">➕ Add Collection</button>'
-                f'</a>',
-                unsafe_allow_html=True
-            )
+        #col1, col2 = st.columns([6, 1])
+        #with col2:
+        #    st.markdown(
+        #        f'<a href="https://forms.gle/ZyvCBLFaPC1szPGd7" target="_blank">'
+        #        f'<button style="background-color:#f44336; color:white; padding:8px 16px; font-size:14px; border:none; border-radius:5px;">➕ Add Collection</button>'
+        #        f'</a>',
+        #        unsafe_allow_html=True
+        #    )
 
         # Display pending collection data        
         
@@ -593,6 +593,14 @@ else:
             st.write("### 🔍 Recent Collection Data:")
             st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
         else:
+            col1, col2 = st.columns([6, 1])
+            with col2:
+                st.markdown(
+                    f'<a href="https://forms.gle/ZyvCBLFaPC1szPGd7" target="_blank">'
+                    f'<button style="background-color:#f44336; color:white; padding:8px 16px; font-size:14px; border:none; border-radius:5px;">➕ Add Collection</button>'
+                    f'</a>',
+                    unsafe_allow_html=True
+                )
             st.subheader("🕒 Pending Collection Data")
             #missing_df.index = missing_df.index +1
             st.dataframe(missing_df, hide_index=True)
