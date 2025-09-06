@@ -8,6 +8,8 @@ import gspread
 from google.oauth2.service_account import Credentials
 from datetime import date, time, datetime, timedelta
 import pytz
+from urllib.parse import quote
+
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
@@ -574,18 +576,6 @@ else:
         missing_df = pd.DataFrame(missing_entries)
 
 
-        # Raise Collection Button
-        google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
-                
-        col1, col2 = st.columns([6, 1])
-        with col2:
-            st.markdown(
-                f'<a href="https://forms.gle/ZyvCBLFaPC1szPGd7" target="_blank">'
-                f'<button style="background-color:#f44336; color:white; padding:8px 16px; font-size:14px; border:none; border-radius:5px;">➕ Add Collection</button>'
-                f'</a>',
-                unsafe_allow_html=True
-            )
-
         # Display pending collection data        
         
         if missing_df.empty:
@@ -593,8 +583,78 @@ else:
             st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
         else:
             st.subheader("🕒 Pending Collection Data")
-            #missing_df.index = missing_df.index +1
-            st.dataframe(missing_df, hide_index=True)
+            form_base = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=pp_url"
+
+            # Start building HTML for all buttons
+            buttons_html = """
+        <style>
+        .button-container {
+            display: flex;
+            flex-wrap: wrap; /* wrap into next line if too many */
+            gap: 12px;       /* spacing between buttons */
+        }
+        .custom-btn {
+            background: linear-gradient(135deg, #ff512f, #dd2476);
+            color: white !important;
+            padding: 12px 20px;
+            font-size: 16px;          /* ✅ vehicle number bigger */
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            text-decoration: none !important;
+            display: flex;            /* ✅ flexbox for stacking */
+            flex-direction: column;   /* ✅ stack vertically */
+            align-items: center;      /* ✅ center horizontally */
+            justify-content: center;  /* ✅ center vertically */
+        }
+        .vehicle-no {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .missing-date {
+            margin-top: 4px;
+            font-size: 12px;      /* ✅ smaller */
+            font-weight: 400;
+            color: #000000;       /* ✅ light white/grey */
+        }
+        .custom-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #dd2476, #ff512f);
+        }
+        </style>
+        <div class="button-container">
+        """
+
+            # Add each button to the HTML string
+            for _, row in missing_df.iterrows():
+                form_link = (
+                    f"{form_base}"
+                    f"&entry.1817078140={quote(str(row['Missing Date']))}"
+                    f"&entry.424776091={quote(str(row['Vehicle No']))}"
+                    f"&entry.1100483606={quote(str(row['Last Collected Amount']))}"  
+                    f"&entry.1947342081={quote(str(row['Last Meter Reading']))}"
+                    f"&entry.1812763042={quote(str(row['Last Assigned Name']))}"
+                    f"&entry.1925700467={quote('Govind Kumar')}"
+                )
+
+                buttons_html += f"""
+        <a href="{form_link}" target="_blank" class="custom-btn">
+            <span class="vehicle-no">{row['Vehicle No']}</span>
+            <span class="missing-date">{row['Missing Date']}</span>
+        </a>
+        """
+
+            buttons_html += "</div>"
+
+            # Render all buttons at once
+            st.markdown(buttons_html, unsafe_allow_html=True)
+            
+
+
 
         ## changes by ayush end here ##############################
 
