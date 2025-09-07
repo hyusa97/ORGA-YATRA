@@ -9,7 +9,172 @@ from google.oauth2.service_account import Credentials
 from datetime import date, time, datetime, timedelta
 import pytz
 from urllib.parse import quote
+import streamlit.components.v1 as components
 
+
+
+
+
+# Function to get the background color based on amount
+def get_background_style(amount):
+    if amount == 0:
+        return "linear-gradient(135deg, #880044, #440022);" # Very Bad
+    elif 1 <= amount <= 299:
+        return "linear-gradient(135deg, #4da6ff, #0077b6);" # Good
+    elif amount == 300:
+        return "linear-gradient(135deg, #FFD400, #FFB800);" # Happy
+    elif amount > 300:
+        return "linear-gradient(135deg, #00FF7F, #00994C);" # More Happy
+    return "linear-gradient(135deg, #4da6ff, #0077b6);" # Default if none match
+
+# HTML + CSS for both sets of cards
+html_content = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+.card {
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    width: 160px;
+    height: 120px; /* Increased height to fit content better */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+.card::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 30px;
+    height: 30px;
+    background: #ffffff30;
+    border-radius: 50%;
+    transform: scale(0);
+    transition: transform 0.4s ease;
+}
+.card:hover::before {
+    transform: scale(20);
+}
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
+}
+
+.vehicle-no {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 5px;
+    z-index: 1;
+    color: #ffffff;
+    text-align: center;
+}
+
+/* Explicitly set color to black for all other text elements */
+.date,
+.meter-reading-header,
+.info-left,
+.info-right,
+.info-value,
+.info-value.name {
+    color: #000000;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    z-index: 1;
+}
+
+.date, .meter-reading-header {
+    font-size: 0.7em;
+    font-weight: 600;
+    opacity: 1;
+    z-index: 1;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: auto;
+}
+
+.info-left, .info-right {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.75em;
+    z-index: 1;
+}
+.info-value {
+    font-weight: 600;
+}
+.info-value.name {
+    text-align: right;
+}
+</style>
+
+<div class="card-container">
+"""
+
+
+# Start building HTML for all buttons
+buttons_html = """
+        <style>
+        .button-container {
+            display: flex;
+            flex-wrap: wrap; /* wrap into next line if too many */
+            gap: 12px;       /* spacing between buttons */
+        }
+        .custom-btn {
+            background: linear-gradient(135deg, #ff512f, #dd2476);
+            color: white !important;
+            padding: 12px 20px;
+            font-size: 16px;          /* ✅ vehicle number bigger */
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            text-decoration: none !important;
+            display: flex;            /* ✅ flexbox for stacking */
+            flex-direction: column;   /* ✅ stack vertically */
+            align-items: center;      /* ✅ center horizontally */
+            justify-content: center;  /* ✅ center vertically */
+        }
+        .vehicle-no {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .missing-date {
+            margin-top: 4px;
+            font-size: 12px;      /* ✅ smaller */
+            font-weight: 400;
+            color: #000000;       /* ✅ light white/grey */
+        }
+        .custom-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #dd2476, #ff512f);
+        }
+        </style>
+        <div class="button-container">
+        """
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Google Sheets Dashboard", layout="wide")
@@ -579,55 +744,42 @@ else:
         # Display pending collection data        
         
         if missing_df.empty:
-            st.write("### 🔍 Recent Collection Data:")
-            st.dataframe(df.sort_values(by="Collection Date", ascending=False).head(10))
+            st.write("### 🔍 Recent Collection:")
+            Recent_Collection = df.sort_values(by="Collection Date", ascending=False).head(14)
+            Recent_Collection["Collection Date"] = pd.to_datetime(Recent_Collection["Collection Date"])
+            Recent_Collection["Collection Date"] = Recent_Collection["Collection Date"].dt.strftime("%d %b %Y")
+            for _, row in Recent_Collection.iterrows():
+                bg_style = get_background_style(row['Amount'])
+                        
+                html_content += f"""
+                    <div class="card" style="background: {bg_style}">
+                        <div class="vehicle-no">{row['Vehicle No']}</div>
+                        <hr style="border-top: 2px solid #000; margin-top: 5px; margin-bottom: 5px;">
+                        <div class="card-header">
+                            <div class="date">{row['Collection Date']}</div>
+                            <div class="meter-reading-header">{row['Meter Reading']} Km</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-left">
+                                <div class="info-value">₹ {row['Amount']}</div>
+                                <div class="info-value">{row['Distance']} km</div>
+                            </div>
+                            <div class="info-right">
+                                <div class="info-value name">{row['Name']}</div>
+                            </div>
+                        </div>
+                    </div>
+                """
+
+            html_content += "</div>"
+
+            # Render HTML
+            components.html(html_content, height=300, scrolling=True)
         else:
-            st.subheader("🕒 Pending Collection Data")
+            st.subheader("🕒 Pending Collection:")
             form_base = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=pp_url"
 
-            # Start building HTML for all buttons
-            buttons_html = """
-        <style>
-        .button-container {
-            display: flex;
-            flex-wrap: wrap; /* wrap into next line if too many */
-            gap: 12px;       /* spacing between buttons */
-        }
-        .custom-btn {
-            background: linear-gradient(135deg, #ff512f, #dd2476);
-            color: white !important;
-            padding: 12px 20px;
-            font-size: 16px;          /* ✅ vehicle number bigger */
-            font-weight: 700;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            text-decoration: none !important;
-            display: flex;            /* ✅ flexbox for stacking */
-            flex-direction: column;   /* ✅ stack vertically */
-            align-items: center;      /* ✅ center horizontally */
-            justify-content: center;  /* ✅ center vertically */
-        }
-        .vehicle-no {
-            font-size: 16px;
-            font-weight: 700;
-        }
-        .missing-date {
-            margin-top: 4px;
-            font-size: 12px;      /* ✅ smaller */
-            font-weight: 400;
-            color: #000000;       /* ✅ light white/grey */
-        }
-        .custom-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 10px rgba(0,0,0,0.3);
-            background: linear-gradient(135deg, #dd2476, #ff512f);
-        }
-        </style>
-        <div class="button-container">
-        """
+            
 
             # Add each button to the HTML string
             for _, row in missing_df.iterrows():
@@ -1240,42 +1392,42 @@ else:
     
         # Round distance
         df["Distance"] = df["Distance"].round(2)
-    
-        # Styling
-        def highlight_amount(val, prev):
-            if pd.isna(prev):
-                return ""
-            elif val > prev:
-                return "color: green; font-weight: bold"
-            elif val < prev:
-                return "color: red; font-weight: bold"
-            else:
-                return ""
-    
-        def style_row(row):
-            return [
-                highlight_amount(row["Amount"], row["Previous Amount"]) if col == "Amount" else ""
-                for col in row.index
-            ]
-    
-        # Prepare merged dataframe with Previous Amount (needed for color logic)
-        merged_df = filtered_df.copy()
-        #styled_df = merged_df[display_cols + ["Previous Amount"]].style.apply(style_row, axis=1)
-        styled_df = merged_df.sort_values("Collection Date", ascending=False)[display_cols + ["Previous Amount"]].style.apply(style_row, axis=1)
 
-    
-        # Format currency and distance
-        styled_df = styled_df.format({
-        "Amount": "₹{:,.0f}",
-        "Distance": "{:,.0f}",
-        "Previous Amount": "{:,.0f}"
-    })
+        Daily_Collection = (
+            filtered_df.copy()
+            .assign(**{"Collection Date": lambda x: pd.to_datetime(x["Collection Date"])})
+            .sort_values("Collection Date", ascending=False)
+        )
 
-    
-        # Show styled dataframe
-        st.dataframe(styled_df, use_container_width=True)
+        # Format for display
+        Daily_Collection["Collection Date"] = Daily_Collection["Collection Date"].dt.strftime("%d %b %Y")
 
+        for index, row in Daily_Collection.iterrows():
+            bg_style = get_background_style(row['Amount'])
+            
+            html_content += f"""
+            <div class="card" style="background: {bg_style}">
+                <div class="vehicle-no">{row['Vehicle No']}</div>
+                <hr style="border-top: 2px solid #000; margin-top: 5px; margin-bottom: 5px;">
+                <div class="card-header">
+                    <div class="date">{row['Collection Date']}</div>
+                    <div class="meter-reading-header">{row['Meter Reading']} Km</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-left">
+                        <div class="info-value">₹ {row['Amount']}</div>
+                        <div class="info-value">{row['Distance']} km</div>
+                    </div>
+                    <div class="info-right">
+                        <div class="info-value name">{row['Name']}</div>
+                    </div>
+                </div>
+            </div>
+            """
+        html_content += "</div>"
 
+        # Render HTML
+        components.html(html_content, height=600, scrolling=True)
 
 
     elif page == "Bank Transaction":
