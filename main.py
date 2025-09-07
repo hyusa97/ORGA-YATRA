@@ -44,7 +44,7 @@ html_content = """
     padding: 12px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     width: 160px;
-    height: 120px; /* Increased height to fit content better */
+    height: 90px; /* Increased height to fit content better */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -754,7 +754,6 @@ else:
                 html_content += f"""
                     <div class="card" style="background: {bg_style}">
                         <div class="vehicle-no">{row['Vehicle No']}</div>
-                        <hr style="border-top: 2px solid #000; margin-top: 5px; margin-bottom: 5px;">
                         <div class="card-header">
                             <div class="date">{row['Collection Date']}</div>
                             <div class="meter-reading-header">{row['Meter Reading']} Km</div>
@@ -1408,7 +1407,6 @@ else:
             html_content += f"""
             <div class="card" style="background: {bg_style}">
                 <div class="vehicle-no">{row['Vehicle No']}</div>
-                <hr style="border-top: 2px solid #000; margin-top: 5px; margin-bottom: 5px;">
                 <div class="card-header">
                     <div class="date">{row['Collection Date']}</div>
                     <div class="meter-reading-header">{row['Meter Reading']} Km</div>
