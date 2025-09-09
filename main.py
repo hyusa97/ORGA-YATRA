@@ -535,10 +535,10 @@ else:
                 vehicle_history= df[(df['Vehicle No']== v) & (df['Collection Date']< cur_date)].sort_values('Collection Date')
 
                 # Filter rows with non-zero collection amounts
-                non_zero_history = vehicle_history[vehicle_history['Amount'] > 0]
-                if not non_zero_history.empty:
+                #non_zero_history = vehicle_history[vehicle_history['Amount'] > 0]
+                if not vehicle_history.empty:
                     # Last date when non-zero collection happened
-                    last_non_zero_row = non_zero_history.iloc[-1]
+                    last_non_zero_row = vehicle_history.iloc[-1]
                     last_non_zero_date = last_non_zero_row['Collection Date']
                     last_non_zero_amount = last_non_zero_row['Amount']
                     last_meter_reading = last_non_zero_row['Meter Reading']
@@ -550,22 +550,23 @@ else:
                     last_non_zero_date =None
                     last_non_zero_amount = None
                     last_meter_reading = None
+                    last_driver_name = None
 
                     # Get last driver name if any history exists 
-                    if not vehicle_history.empty:
-                        last_driver_name = vehicle_history.iloc[-1]['Name']
-                    else:
-                        last_driver_name = None
+                    #if not vehicle_history.empty:
+                    #    last_driver_name = vehicle_history.iloc[-1]['Name']
+                    #else:
+                    #    last_driver_name = None
 
                 
                 # Calculate number of days since last non-zero collection with zero amount
-                if last_non_zero_date:
-                    zero_days = vehicle_history[
-                        (vehicle_history['Collection Date']> last_non_zero_date)& (vehicle_history['Amount'] == 0)
-                    ].shape[0]
+                #if last_non_zero_date:
+                #    zero_days = vehicle_history[
+                #        (vehicle_history['Collection Date']> last_non_zero_date)& (vehicle_history['Amount'] == 0)
+                #    ].shape[0]
 
-                else:
-                    zero_days = 0
+                #else:
+                #    zero_days = 0
 
                 
                 
