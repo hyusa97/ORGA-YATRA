@@ -668,7 +668,7 @@ else:
         # Get the current time in Asia/Kolkata timezone and Get today's date and yesterday's date
         tz = pytz.timezone("Asia/Kolkata")
         now = datetime.now(tz)
-        latest_date = date.today()
+        latest_date = now.date()
         yesterday = latest_date - timedelta(days=1)
         cur_hour = now.hour
         # If current time is after 4 PM, include today in the date range, else only till yesterday
