@@ -570,8 +570,8 @@ else:
 
                 
                 
-                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Meter Reading": last_meter_reading, "Last Assigned Name": last_driver_name, "Last Collected Amount": last_non_zero_amount, "Last Collection date": last_non_zero_date, "Zero Collection from(Days)":zero_days })
-        
+                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Meter Reading": last_meter_reading, "Last Assigned Name": last_driver_name, "Last Collected Amount": last_non_zero_amount, "Last Collection date": last_non_zero_date })
+                #, "Zero Collection from(Days)":zero_days
         missing_df = pd.DataFrame(missing_entries)
 
 
