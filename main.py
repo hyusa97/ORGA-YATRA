@@ -668,7 +668,7 @@ else:
         # Get the current time in Asia/Kolkata timezone and Get today's date and yesterday's date
         tz = pytz.timezone("Asia/Kolkata")
         now = datetime.now(tz)
-        latest_date = date.today()
+        latest_date = now.date()
         yesterday = latest_date - timedelta(days=1)
         cur_hour = now.hour
         # If current time is after 4 PM, include today in the date range, else only till yesterday
@@ -703,41 +703,25 @@ else:
                 vehicle_history= df[(df['Vehicle No']== v) & (df['Collection Date']< cur_date)].sort_values('Collection Date')
 
                 # Filter rows with non-zero collection amounts
-                non_zero_history = vehicle_history[vehicle_history['Amount'] > 0]
-                if not non_zero_history.empty:
+                #non_zero_history = vehicle_history[vehicle_history['Amount'] > 0]
+                if not vehicle_history.empty:
                     # Last date when non-zero collection happened
-                    last_non_zero_row = non_zero_history.iloc[-1]
-                    last_non_zero_date = last_non_zero_row['Collection Date']
-                    last_non_zero_amount = last_non_zero_row['Amount']
-                    last_meter_reading = last_non_zero_row['Meter Reading']
-                    last_driver_name = last_non_zero_row['Name']
+                    last_row = vehicle_history.iloc[-1]
+                    last_collection_date = last_row['Collection Date']
+                    last_amount = last_row['Amount']
+                    last_meter_reading = last_row['Meter Reading']
+                    last_driver_name = last_row['Name']
                 
 
                 else:
                     # If no non-zero collection ever happened
-                    last_non_zero_date =None
-                    last_non_zero_amount = None
+                    last_collection_date =None
+                    last_amount = None
                     last_meter_reading = None
-
-                    # Get last driver name if any history exists 
-                    if not vehicle_history.empty:
-                        last_driver_name = vehicle_history.iloc[-1]['Name']
-                    else:
-                        last_driver_name = None
-
+                    last_driver_name = None
+   
                 
-                # Calculate number of days since last non-zero collection with zero amount
-                if last_non_zero_date:
-                    zero_days = vehicle_history[
-                        (vehicle_history['Collection Date']> last_non_zero_date)& (vehicle_history['Amount'] == 0)
-                    ].shape[0]
-
-                else:
-                    zero_days = 0
-
-                
-                
-                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Meter Reading": last_meter_reading, "Last Assigned Name": last_driver_name, "Last Collected Amount": last_non_zero_amount, "Last Collection date": last_non_zero_date, "Zero Collection from(Days)":zero_days })
+                missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Meter Reading": last_meter_reading, "Last Assigned Name": last_driver_name, "Last Collected Amount": last_amount, "Last Collection date": last_collection_date })
         
         missing_df = pd.DataFrame(missing_entries)
 
