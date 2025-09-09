@@ -578,7 +578,7 @@ else:
         # Raise Collection Button
         google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
                 
-
+        st.write(cur_hour)
         # Display pending collection data        
         
         if missing_df.empty:
