@@ -502,6 +502,7 @@ else:
         now = datetime.now(tz)
         latest_date = date.today()
         yesterday = latest_date - timedelta(days=1)
+        yesterday2 = latest_date - timedelta(days=0)
         cur_hour = now.hour
         # If current time is after 4 PM, include today in the date range, else only till yesterday
         if cur_hour >= 16:
@@ -577,8 +578,12 @@ else:
 
         # Raise Collection Button
         google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
-                
-        st.write(cur_hour)
+            
+        st.write("cur_hour",cur_hour)
+        st.write("start_date",start_date)
+        st.write("yesterday",yesterday)
+        st.write("latest_date",latest_date)
+        st.write("yerterday2",yesterday2)
         # Display pending collection data        
         
         if missing_df.empty:
