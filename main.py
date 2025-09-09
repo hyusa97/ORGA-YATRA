@@ -500,7 +500,7 @@ else:
         # Get the current time in Asia/Kolkata timezone and Get today's date and yesterday's date
         tz = pytz.timezone("Asia/Kolkata")
         now = datetime.now(tz)
-        latest_date = date.today()
+        latest_date = now.date()
         yesterday = latest_date - timedelta(days=1)
         yesterday2 = latest_date - timedelta(days=0)
         cur_hour = now.hour
@@ -553,23 +553,6 @@ else:
                     last_meter_reading = None
                     last_driver_name = None
 
-                    # Get last driver name if any history exists 
-                    #if not vehicle_history.empty:
-                    #    last_driver_name = vehicle_history.iloc[-1]['Name']
-                    #else:
-                    #    last_driver_name = None
-
-                
-                # Calculate number of days since last non-zero collection with zero amount
-                #if last_non_zero_date:
-                #    zero_days = vehicle_history[
-                #        (vehicle_history['Collection Date']> last_non_zero_date)& (vehicle_history['Amount'] == 0)
-                #    ].shape[0]
-
-                #else:
-                #    zero_days = 0
-
-                
                 
                 missing_entries.append({"Missing Date": cur_date, "Vehicle No":v, "Last Meter Reading": last_meter_reading, "Last Assigned Name": last_driver_name, "Last Collected Amount": last_non_zero_amount, "Last Collection date": last_non_zero_date })
                 #, "Zero Collection from(Days)":zero_days
@@ -579,11 +562,6 @@ else:
         # Raise Collection Button
         google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSdnNBpKKxpWVkrZfj0PLKW8K26-3i0bO43hBADOHvGcpGqjvA/viewform?usp=header"
             
-        st.write("cur_hour",cur_hour)
-        st.write("start_date",start_date)
-        st.write("yesterday",yesterday)
-        st.write("latest_date",latest_date)
-        st.write("yerterday2",yesterday2)
         # Display pending collection data        
         
         if missing_df.empty:
